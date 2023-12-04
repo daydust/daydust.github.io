@@ -1,0 +1,677 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>代码审计—RBAC权限管理系统 | Daydust's Blog</title><meta name="author" content="庆尘"><meta name="copyright" content="庆尘"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="炼石计划第三阶段项目实战——RBAC权限管理系统审计笔记">
+<meta property="og:type" content="article">
+<meta property="og:title" content="代码审计—RBAC权限管理系统">
+<meta property="og:url" content="http://example.com/2023/12/03/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94RBAC%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/index.html">
+<meta property="og:site_name" content="Daydust&#39;s Blog">
+<meta property="og:description" content="炼石计划第三阶段项目实战——RBAC权限管理系统审计笔记">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/avater.jpg">
+<meta property="article:published_time" content="2023-12-03T11:08:28.000Z">
+<meta property="article:modified_time" content="2023-12-03T15:21:23.685Z">
+<meta property="article:author" content="庆尘">
+<meta property="article:tag" content="代码审计">
+<meta property="article:tag" content="Spring">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/avater.jpg"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://example.com/2023/12/03/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94RBAC%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: undefined,
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '代码审计—RBAC权限管理系统',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2023-12-03 23:21:23'
+}</script><script>(win=>{
+      win.saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+    
+      win.getScript = (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        script.onerror = reject
+        script.onload = script.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          script.onload = script.onreadystatechange = null
+          resolve()
+        }
+
+        Object.keys(attr).forEach(key => {
+          script.setAttribute(key, attr[key])
+        })
+
+        document.head.appendChild(script)
+      })
+    
+      win.getCSS = (url, id = false) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onerror = reject
+        link.onload = link.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          link.onload = link.onreadystatechange = null
+          resolve()
+        }
+        document.head.appendChild(link)
+      })
+    
+      win.activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+        if (t === 'dark') activateDarkMode()
+        else if (t === 'light') activateLightMode()
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })(window)</script><meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/atom.xml" title="Daydust's Blog" type="application/atom+xml">
+</head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/avater.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">9</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">9</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a href="/" title="Daydust's Blog"><span class="site-name">Daydust's Blog</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">代码审计—RBAC权限管理系统</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2023-12-03T11:08:28.000Z" title="发表于 2023-12-03 19:08:28">2023-12-03</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2023-12-03T15:21:23.685Z" title="更新于 2023-12-03 23:21:23">2023-12-03</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">代码审计</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">6.6k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>21分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="代码审计—RBAC权限管理系统"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="一、项目部署"><a href="#一、项目部署" class="headerlink" title="一、项目部署"></a>一、项目部署</h1><h2 id="1、Java环境"><a href="#1、Java环境" class="headerlink" title="1、Java环境"></a>1、Java环境</h2><p>使用java1.8.0_301版本进行部署</p>
+<p><img src="/2023/12/03/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94RBAC%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/1701440805218-08dc53e4-d911-44d4-8673-95093dde6b67.png" alt="img"></p>
+<h2 id="2、Maven"><a href="#2、Maven" class="headerlink" title="2、Maven"></a>2、Maven</h2><p>使用IDEA内置的Maven</p>
+<h2 id="3、Mysql环境部署"><a href="#3、Mysql环境部署" class="headerlink" title="3、Mysql环境部署"></a>3、Mysql环境部署</h2><p>使用老版本的phpstudy搭建</p>
+<p><img src="/2023/12/03/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94RBAC%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/1701440823828-d54763e0-48c0-4337-93f8-1a5f2fc009b4.png" alt="img"></p>
+<p>创建数据库并导入数据</p>
+<p><img src="/2023/12/03/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94RBAC%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/1701440836535-0e3b6115-b189-4ef4-b667-c64f1dad5135.png" alt="img"></p>
+<h2 id="4、项目搭建"><a href="#4、项目搭建" class="headerlink" title="4、项目搭建"></a>4、项目搭建</h2><p>导入项目到IDEA</p>
+<p>修改数据库连接信息</p>
+<p><img src="/2023/12/03/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94RBAC%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/1701440854843-b16395be-e07f-48d8-b921-840c53b4839f.png" alt="img"></p>
+<h2 id="5、项目启动"><a href="#5、项目启动" class="headerlink" title="5、项目启动"></a>5、项目启动</h2><p>项目启动之后访问127.0.0.1:8088即可访问到如下的登录页面</p>
+<p><img src="/2023/12/03/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94RBAC%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/1701440874490-d57143cd-98d1-4298-b39a-86215402373e.png" alt="img"></p>
+<h1 id="二、组件漏洞审计"><a href="#二、组件漏洞审计" class="headerlink" title="二、组件漏洞审计"></a>二、组件漏洞审计</h1><p>本项目是基于Maven构建的。对于Maven项目，我们首先要从pom.xml文件开始审计引入的第三方组件的版本是否为漏洞版本，再进一步验证组件是否存在漏洞</p>
+<table>
+<thead>
+<tr>
+<th>组件名称</th>
+<th>组件版本</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Sping boot</td>
+<td>2.3.1</td>
+</tr>
+<tr>
+<td>Spring security</td>
+<td>5.3.3</td>
+</tr>
+<tr>
+<td>actuator</td>
+<td>2.31</td>
+</tr>
+<tr>
+<td>fastjson</td>
+<td>1.2.56</td>
+</tr>
+<tr>
+<td>thymeleaf</td>
+<td>3.0.11</td>
+</tr>
+<tr>
+<td>mybatis</td>
+<td>2.1.2</td>
+</tr>
+<tr>
+<td>swagger2</td>
+<td>2.9.2</td>
+</tr>
+<tr>
+<td>druid</td>
+<td>1.1.21</td>
+</tr>
+<tr>
+<td>easy-captcha</td>
+<td>1.6.2</td>
+</tr>
+<tr>
+<td>oshi-core</td>
+<td>4.4.2</td>
+</tr>
+<tr>
+<td>pagehelper</td>
+<td>1.2.13</td>
+</tr>
+<tr>
+<td>hutool</td>
+<td>5.1.4</td>
+</tr>
+</tbody></table>
+<h2 id="1、Spring-boot"><a href="#1、Spring-boot" class="headerlink" title="1、Spring boot"></a>1、Spring boot</h2><p>Spring Boot是由Pivotal团队提供的全新框架，其设计目的是用来简化Spring应用的创建、运行、调试、部署等。使用Spring Boot可以做到专注于Spring应用的开发，而无需过多关注XML的配置。</p>
+<p>在网上检索了Spring boot框架的漏洞，只找到一个很老的，如下</p>
+<ul>
+<li>Spring Boot框架SPEL表达式注入漏洞（**&lt; v1.3.0**）</li>
+</ul>
+<p>本项目的<strong>Spring Boot版本为2.3.1</strong>,所以不存在该漏洞，暂时放弃</p>
+<h2 id="2、Spring-security"><a href="#2、Spring-security" class="headerlink" title="2、Spring security"></a>2、Spring security</h2><p> Spring Security 是Spring家族中的一个安全管理框架。核心功能就就是认证与授权。</p>
+<p>该项目的<strong>Spring security版本为5.3.3</strong>，在网上把Spring security的历史的认证绕过CVE检索了一下，发现该版本只受到一个漏洞影响</p>
+<ul>
+<li><strong>CVE-2022-22978 RegexRequestMatcher认证绕过漏洞</strong></li>
+</ul>
+<p>但是该漏洞需要使用到<strong>RegexRequestMatcher</strong>方法进行正则匹配，本次项目并没有用到，所以暂时放弃该组件漏洞的查找</p>
+<h2 id="3、Actuator"><a href="#3、Actuator" class="headerlink" title="3、Actuator"></a>3、Actuator</h2><p>Spring Boot Actuator 是 Spring Boot 提供的用于监控和管理应用程序的模块。它提供了一组现成的端点，可以让我们方便地监控和管理应用程序。这些端点包括健康状况、性能指标、配置信息、日志等。通过这些端点，我们可以了解应用程序的运行状况，及时发现和解决问题，提高应用程序的可用性和可维护性。</p>
+<p>actuator的漏洞主要是未授权访问漏洞</p>
+<p><strong>组件端点位置如下</strong></p>
+<ul>
+<li>Spring Boot 1.x版本端点在根URL下注册 </li>
+<li>Spring Boot 2.x版本端点移动到&#x2F;actuator&#x2F;路径</li>
+</ul>
+<p><strong>组件未授权情况如下</strong></p>
+<ul>
+<li>Spring Boot &lt; 1.5 默认未授权访问所有端点</li>
+<li>Spring Boot &gt;&#x3D; 1.5 默认只允许访问&#x2F;health和&#x2F;info端点，但是此安全性通常被应用程序开发人员禁用。</li>
+</ul>
+<p>因为这里的版本是2.31，所以端点是&#x2F;actuator&#x2F;路径，并且<strong>默认是不能访问其他敏感端口的</strong>，Actuator提供了13个接口，如下</p>
+<table>
+<thead>
+<tr>
+<th>GET</th>
+<th>&#x2F;auditevents</th>
+<th>显示应用暴露的审计事件 (比如认证进入、订单失败)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>GET</td>
+<td>&#x2F;beans</td>
+<td>描述应用程序上下文里全部的 Bean，以及它们的关系</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>&#x2F;conditions</td>
+<td>就是 1.0 的 &#x2F;autoconfig ，提供一份自动配置生效的条件情况，记录哪些自动配置条件通过了，哪些没通过</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>&#x2F;configprops</td>
+<td>描述配置属性(包含默认值)如何注入Bean</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>&#x2F;env</td>
+<td>获取全部环境属性</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>&#x2F;env&#x2F;{name}</td>
+<td>根据名称获取特定的环境属性值</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>&#x2F;flyway</td>
+<td>提供一份 Flyway 数据库迁移信息</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>&#x2F;liquidbase</td>
+<td>显示Liquibase 数据库迁移的纤细信息</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>&#x2F;health</td>
+<td>报告应用程序的健康指标，这些值由 HealthIndicator 的实现类提供</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>&#x2F;heapdump</td>
+<td>dump 一份应用的 JVM 堆信息</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>&#x2F;httptrace</td>
+<td>显示HTTP足迹，最近100个HTTP request&#x2F;repsponse</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>&#x2F;info</td>
+<td>获取应用程序的定制信息，这些信息由info打头的属性提供</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>&#x2F;logfile</td>
+<td>返回log file中的内容(如果 logging.file 或者 logging.path 被设置)</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>&#x2F;loggers</td>
+<td>显示和修改配置的loggers</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>&#x2F;metrics</td>
+<td>报告各种应用程序度量信息，比如内存用量和HTTP请求计数</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>&#x2F;metrics&#x2F;{name}</td>
+<td>报告指定名称的应用程序度量值</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>&#x2F;scheduledtasks</td>
+<td>展示应用中的定时任务信息</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>&#x2F;sessions</td>
+<td>如果我们使用了 Spring Session 展示应用中的 HTTP sessions 信息</td>
+</tr>
+<tr>
+<td>POST</td>
+<td>&#x2F;shutdown</td>
+<td>关闭应用程序，要求endpoints.shutdown.enabled设置为true</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>&#x2F;mappings</td>
+<td>描述全部的 URI路径，以及它们和控制器(包含Actuator端点)的映射关系</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>&#x2F;threaddump</td>
+<td>获取线程活动的快照</td>
+</tr>
+</tbody></table>
+<p>此时我们就要去看看开发人员开启了哪些配置，如果没有配置的话就是默认的&#x2F;info和&#x2F;health端点了，也就没有什么危害</p>
+<p>这里我们可以通过配置文件，即application.yml文件查看配置状态，直接全局搜索<strong>endpoints</strong>也可以查看，如下</p>
+<p><img src="/2023/12/03/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94RBAC%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/1701440895667-949ddf54-587c-4ca8-b6aa-e604e40843b6.png" alt="img"></p>
+<p>可以看到确实在application.yml文件中</p>
+<p><img src="/2023/12/03/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94RBAC%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/1701440900483-7907f21d-0aec-451e-804a-38ca5df3c501.png" alt="img"></p>
+<p>经过观察发现开发人员修改了这个配置，主动开启了如下几个端点</p>
+<ul>
+<li>&#x2F;beans</li>
+<li>&#x2F;env</li>
+<li>&#x2F;metrics</li>
+</ul>
+<p>其中那么就可以初步判断这个位置存在未授权访问漏洞，等待之后验证</p>
+<p><strong>拓展一下：</strong></p>
+<p>这里include如果是下面这样的话，就是开启所有端口 </p>
+<pre><code class="yaml"> include &quot;*&quot;
+</code></pre>
+<p>这里说的2.0的路由是&#x2F;actuator&#x2F;，我在网上找了一下，其实这个也可以自定义，如下配置即可</p>
+<pre><code class="yaml">management:
+endpoints:
+ web:
+   base-path: /manage
+</code></pre>
+<p>此时的路由就会变为&#x2F;manage，就可以防止一些黑盒层面的目录遍历查找出未授权访问。</p>
+<h2 id="4、Fastjson"><a href="#4、Fastjson" class="headerlink" title="4、Fastjson"></a>4、Fastjson</h2><p>FastJson是阿里巴巴的的开源库，用于对JSON格式的数据进行解析和打包。能够支持将java bean序列化成JSON字符串，也能够将JSON字符串<a target="_blank" rel="noopener" href="https://so.csdn.net/so/search?q=%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96&spm=1001.2101.3001.7020">反序列化</a>成Java bean</p>
+<p>这里的fastjson版本是  1.2.56，经过搜索，发现该版本存在反序列化漏洞，这里就要讲一下fastjson常见的两种处理JSON的方法</p>
+<ul>
+<li><code>JSON.toJSONString()</code>方法：可将对象转换成<code>JSON</code>字符串</li>
+<li><code>JSON.parseObject()</code>方法：将<code>JSON</code>字符串转换成对象。</li>
+</ul>
+<p>Fastjson该版本的漏洞也正是这两个函数的使用导致的问题，所以全局搜索这两个函数，如下</p>
+<p><img src="/2023/12/03/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94RBAC%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/1701441100826-36aa091f-7ffb-4838-bb60-3983a8586e56.png" alt="img"></p>
+<p><img src="/2023/12/03/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94RBAC%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/1701441107333-60444809-3ac8-4f4b-8e6c-7dee00d2c934.png" alt="img"></p>
+<p>但是并没有搜到，那这里说明什么呢？说明该项目虽然导入了Fastjson，但是没有使用，自然也就不存在对应的漏洞，所以放弃这个点</p>
+<h2 id="5、thymeleaf"><a href="#5、thymeleaf" class="headerlink" title="5、thymeleaf"></a>5、thymeleaf</h2><p>thymeleaf这里的版本是3.0.11</p>
+<h3 id="模板注入"><a href="#模板注入" class="headerlink" title="模板注入"></a>模板注入</h3><p>Thymeleaf 3.0.0 至 3.0.11 版本存在模板注入漏洞，具体的漏洞判断与利用可以看下面的文章</p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/m0_71692682/article/details/130538310">https://blog.csdn.net/m0_71692682/article/details/130538310</a></p>
+<p>但经过测试，这里并不存在模板注入，基本都使用了@ResponseBody注解</p>
+<p>@ResponseBody 是一个Spring框架中的注解，它用于指示该方法的返回值应该直接写入HTTP响应正文ResponseBody中， 而不是<strong>通过视图解析器进行渲染</strong> 。使用 @ResponseBody 注解可以将方法返回值以JSON、XML等格式直接写入HTTP响应体中，常用于返回 RESTful API 接口的响应数据。</p>
+<h3 id="XSS"><a href="#XSS" class="headerlink" title="XSS"></a>XSS</h3><p>Thymeleaf中 th:text 标签进行渲染的时候，默认对特殊字符进行了转义，而th:utext 不会将字符转 </p>
+<p>义。也就是说使用了 th:utext 标签会出现XSS漏洞。</p>
+<p>经过全局搜索，发现有两处使用了 th:text 标签。没有地方使用 th:utext 标签。所以基于Thymeleaf的XSS审计也暂时放弃</p>
+<h2 id="6、Mybatis"><a href="#6、Mybatis" class="headerlink" title="6、Mybatis"></a>6、Mybatis</h2><p>mybatis是一款用于持久层的、轻量级的半自动化ORM框架，封装了所有jdbc操作以及设置查询参数和获取结果集的操作，支持自定义sql、存储过程和高级映射。</p>
+<p>这里的mybatis的版本是<strong>2.1.2</strong>。经过查找，发现该版本存在一个<strong>远程代码执行漏洞CVE-2020-26945</strong></p>
+<p>但是有三个条件</p>
+<ul>
+<li>用户启用了内置的二级缓存</li>
+<li>用户未设置JEP-290过滤器</li>
+<li>攻击者找到了一种修改私有Map字段条目的方法，即修改org.apache.ibatis.cache.impl.PerpetualCache.cache有效的缓存密钥</li>
+</ul>
+<p>利用条件不满足，放弃该漏洞的审计</p>
+<h2 id="7、swagger2"><a href="#7、swagger2" class="headerlink" title="7、swagger2"></a>7、swagger2</h2><p>Swagger 是一个开源的 API 设计和文档工具，它可以帮助开发人员更快、更简单地设计、构建、文档化和测试 RESTful API。Swagger 可以自动生成交互式 API 文档、客户端 SDK、服务器 stub 代码等，从而使开发人员更加容易地开发、测试和部署 API。</p>
+<p>swagger的漏洞主要还是一个未授权访问漏洞</p>
+<p>因为这个项目用的是SpringSecurity，所以我们可以去Springsecurity的配置文件——SpringSecurityConfig中看看是否对swagger做了权限校验</p>
+<p><img src="/2023/12/03/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94RBAC%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/1701441166666-78b23132-7ebd-4156-b4cc-a885d4b84051.png" alt="img"></p>
+<p>可以看到它这里直接放行了swagger的页面，所以判断这里也是存在未授权访问漏洞的</p>
+<h2 id="8、Druid漏洞审计"><a href="#8、Druid漏洞审计" class="headerlink" title="8、Druid漏洞审计"></a>8、Druid漏洞审计</h2><p>Druid是阿里巴巴数据库出品的，为监控而生的数据库连接池，并且Druid提供的监控功能，监控SQL的执行时间、监控Web URI的请求、Session监控，首先Druid是不存在什么漏洞的。但当开发者配置不当时就可能造成未授权访问。</p>
+<p>它存在的漏洞网上大致可以找到<strong>未授权访问</strong>和<strong>密码可爆破</strong>两个点</p>
+<h3 id="未授权访问"><a href="#未授权访问" class="headerlink" title="未授权访问"></a>未授权访问</h3><p>这里的druid版本为1.1.21，经过网上的搜索，发现只有一个未授权漏洞，并且这个未授权漏洞是因为<strong>程序员的错误配置</strong>导致的，而不是druid本身的漏洞</p>
+<p>Alibaba <a target="_blank" rel="noopener" href="https://so.csdn.net/so/search?q=Druid&spm=1001.2101.3001.7020">Druid</a> 默认情况下未设置访问控制，攻击者可以登录以获取敏感信息。这里有两种情况可以防止这个未授权访问漏洞</p>
+<ul>
+<li>设置StatViewServlet(监控页面)的enabled为 <strong>false</strong>，即不启动监控页面</li>
+<li>或设置监控页面的账密</li>
+</ul>
+<p>先查看是否存在这个未授权访问漏洞</p>
+<p><img src="/2023/12/03/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94RBAC%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/1701441189600-f30b000c-ed72-46b5-9f52-e139657018cf.png" alt="img"></p>
+<p>发现这里虽然开启了监控页面，但是设置了账密，所以并不存在未授权访问漏洞</p>
+<h3 id="密码可爆破"><a href="#密码可爆破" class="headerlink" title="密码可爆破"></a>密码可爆破</h3><p>但是发现这个账密很简单，所以这里存在爆破的可能性，于是我去搜索了一下druid有没有f防爆破的措施，结果发现druid<strong>默认的登录页面是不需要验证码</strong>并且没有防爆破机制的，但有些程序员会自定义开发这个登录页面，添加爆破规则</p>
+<p>我们通过查看resource下的static中的静态文件login.html，发现与默认页面相同，判断此处没有二次开发，即存在密码可爆破漏洞</p>
+<h2 id="9、easy-captcha"><a href="#9、easy-captcha" class="headerlink" title="9、easy-captcha"></a>9、easy-captcha</h2><p>一款好用的Java图形验证码，支持gif、中文、算术等类型，可用于Java Web、<a target="_blank" rel="noopener" href="https://so.csdn.net/so/search?q=JavaSE&spm=1001.2101.3001.7020">JavaSE</a>等项目。</p>
+<p>但在网上并没有找到这个组件的公开漏洞，暂时放弃</p>
+<h2 id="10、oshi"><a href="#10、oshi" class="headerlink" title="10、oshi"></a>10、oshi</h2><p>oshi-core 4.4.2</p>
+<p>暂无漏洞</p>
+<h2 id="11、Pagehelper"><a href="#11、Pagehelper" class="headerlink" title="11、Pagehelper"></a>11、Pagehelper</h2><p>去网上搜了一下，只发现了一个,cve-2022-28111(SQL注入漏洞)</p>
+<p><a target="_blank" rel="noopener" href="https://so.csdn.net/so/search?q=Mybatis&spm=1001.2101.3001.7020">Mybatis</a>-PageHelper是一款分页插件。<br>Mybatis-PageHelper 1.x.x版本至5.x.x版本存在安全漏洞，该漏洞源于通过orderBy参数存在SQL注入漏洞。</p>
+<p>但是经过搜索，该项目中<strong>并没有自定义orderBy参数进行排序</strong>，所以不存在该漏洞，这个点暂时忽略</p>
+<h2 id="12、hutool"><a href="#12、hutool" class="headerlink" title="12、hutool"></a>12、hutool</h2><p>版本为5.1.4，找到了几个公开漏洞，整理如下</p>
+<table>
+<thead>
+<tr>
+<th>C<a target="_blank" rel="noopener" href="https://avd.aliyun.com/detail?id=AVD-2023-42278">VE-2023-42278</a></th>
+<th>Hutool JSONUtil.parse()缓冲区溢出</th>
+<th>v5.8.21</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>CVE<a target="_blank" rel="noopener" href="https://avd.aliyun.com/detail?id=AVD-2023-42277">-2023-42277</a></td>
+<td>Hutool  jsonObject.putByPath缓存区溢出</td>
+<td>v5.8.21</td>
+</tr>
+<tr>
+<td>CVE<a target="_blank" rel="noopener" href="https://avd.aliyun.com/detail?id=AVD-2023-42276">-2023-42276</a></td>
+<td>Hutool jsonArray缓存区溢出</td>
+<td>v5.8.21</td>
+</tr>
+<tr>
+<td>CVE<a target="_blank" rel="noopener" href="https://avd.aliyun.com/detail?id=AVD-2023-3276">-2023-3276</a></td>
+<td>HuTool SAXParserFactory XML外部实体注入漏洞</td>
+<td>&lt; 5.8.19</td>
+</tr>
+<tr>
+<td>CVE<a target="_blank" rel="noopener" href="https://avd.aliyun.com/detail?id=AVD-2023-33695">-2023-33695</a></td>
+<td>Hutool createTempFile函数敏感信息泄漏漏洞</td>
+<td>&lt; 5.8.19</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://avd.aliyun.com/detail?id=AVD-2022-4565">CVE-2022-4565</a></td>
+<td>Hutool unzip 拒绝服务漏洞</td>
+<td>4.4.2 ~ 5.8.10</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://avd.aliyun.com/detail?id=AVD-2022-45690">CVE-2022-45690</a></td>
+<td>Hutool JSONTokener 拒绝服务漏洞</td>
+<td>&lt; 5.8.10</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://avd.aliyun.com/detail?id=AVD-2022-45689">CVE-2022-45689</a></td>
+<td>Hutool JSONObject   拒绝服务漏洞</td>
+<td>&lt; 5.8.10</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://avd.aliyun.com/detail?id=AVD-2022-45688">CVE-2022-45688</a></td>
+<td>Hutool toJSONObject 拒绝服务漏洞</td>
+<td>5.8.10</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://avd.aliyun.com/detail?id=AVD-2022-22885">CVE-2022-22885</a></td>
+<td>hutool HostnameVerifier 证书验证不恰当</td>
+<td>&lt; 5.7.19</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://avd.aliyun.com/detail?id=AVD-2018-17297">CVE-2018-17297</a></td>
+<td>hutool unzip目录遍历任意文件写入漏洞</td>
+<td>&lt; 4.1.12</td>
+</tr>
+</tbody></table>
+<p>经过测试，发现符合条件的就是Hutool JSONObject   拒绝服务漏洞，因为版本符合，并且该项目也使用了该方法</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/dromara/hutool/issues/2747">https://github.com/dromara/hutool/issues/2747</a></p>
+<p>但由于项目使用了全局异常，所以并不能触发该漏洞，结束该漏洞的审计</p>
+<h1 id="三、单点漏洞审计"><a href="#三、单点漏洞审计" class="headerlink" title="三、单点漏洞审计"></a>三、单点漏洞审计</h1><h2 id="1、SQL注入漏洞审计"><a href="#1、SQL注入漏洞审计" class="headerlink" title="1、SQL注入漏洞审计"></a>1、SQL注入漏洞审计</h2><p>本项目使用了Mybatis，来定义SQL。我们主要查看Myabatis中Mapper文件中是否存在使用 $ 拼接SQL语句的情况。使用 $ 是直接拼接SQL语句的，未进行转义。如下<img src="/2023/12/03/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94RBAC%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/1701516823165-3fb08a64-130d-4588-99a9-4ce34ccd541c.png" alt="img"></p>
+<p>先看看UserMapper文件</p>
+<p>可以看到下面的第13行和第16行都使用了$拼接变量，都有可能存在问题，我们挨个分析<img src="/2023/12/03/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94RBAC%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/1701518888829-7a0d7ccf-9989-4a15-90b5-223a299d0f5c.png" alt="img"></p>
+<h3 id="1-1、nickName参数like注入"><a href="#1-1、nickName参数like注入" class="headerlink" title="1.1、nickName参数like注入"></a>1.1、nickName参数like注入</h3><p>首先分析上面的UserMapper文件的第13行，向上查看根据 select语句的id值追踪该dao层的代码文件。如果在IDEA中安装插件 Free Mybatis plugin 是可以快速进行跳转到代码文件，只需点击左侧绿色箭头即可</p>
+<p>点击之后来到UserDao类，如下</p>
+<p><img src="/2023/12/03/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94RBAC%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/1701519317435-550fc90f-6bd4-4998-a07d-ba5807a7f121.png" alt="img"></p>
+<p>可以看到getFuzzyUserByPage这个select语句的参数是一个MyUser实体类，再查看这个实体类，如下</p>
+<p><img src="/2023/12/03/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94RBAC%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/1701519639499-fa3bf668-7f08-4af0-9b23-b2abb3f48265.png" alt="img"></p>
+<p>可以看到存在nickName和userName参数，即刚才我们发现的两个问题参数</p>
+<p><img src="/2023/12/03/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94RBAC%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/1701519837853-50806f24-4366-4e71-9726-b060b0e7c1c6.png" alt="img"></p>
+<p>继续向上追溯，发现UserServiceImpl类使用了这个方法，定位到45行，我们点进去看看，如下</p>
+<p><img src="/2023/12/03/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94RBAC%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/1701520021625-64219e93-1945-4ccc-b730-03d3d80e1e4b.png" alt="img"></p>
+<p>发现该方法的使用位于getAllUserByPage方法内，并且参数来自于getAllUserByPage方法传入的参数，所以我们再去看看getAllUserBypage方法在哪个位置使用的，如下</p>
+<p><img src="/2023/12/03/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94RBAC%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/1701520198308-c48ca5b2-92f4-4a81-a071-4af4176a5acb.png" alt="img"></p>
+<p>可以发现直接来到的Controller类中，并且根据这里的几个注解我们可以得出</p>
+<ul>
+<li>该方法对应的功能点为”查询用户”</li>
+<li>该功能只有拥有”user:list”权限的用户才能使用</li>
+<li>该接口在swagger文档中位于“用户列表”中</li>
+</ul>
+<p>再看看这里调用的getAllUserByPage方法传入的myUser参数从哪里来的，如下</p>
+<p><img src="/2023/12/03/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94RBAC%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/1701521034455-2749e4d2-4d94-4427-bf7c-582256584c14.png" alt="img"></p>
+<p>观察到UserController类被映射到了&#x2F;api&#x2F;user接口</p>
+<p>所以这里只要用户请求&#x2F;api&#x2F;user接口并带上MyUser实体类存在的参数，就会自动将该参数的值赋值给实体类new出来的对象myUser</p>
+<p>即我请求127.0.0.1:8080&#x2F;api&#x2F;user?username&#x3D;1时，这里的myUser对象的username会被赋值为1，所以我们请求&#x2F;api&#x2F;user传入的nickName参数的值就会被带入问题SQL语句拼接并执行，造成SQL注入</p>
+<p>整个流程串下来，确定了漏洞点为 nickName 参数，该参数值来源于查询用户功能 。</p>
+<h3 id="1-2、userName参数like注入"><a href="#1-2、userName参数like注入" class="headerlink" title="1.2、userName参数like注入"></a>1.2、userName参数like注入</h3><p>这个注入同上，位于一个mapper，一个sql语句中，这里就略过了，后面的验证会一同验证</p>
+<h3 id="1-3、dictName参数like注入"><a href="#1-3、dictName参数like注入" class="headerlink" title="1.3、dictName参数like注入"></a>1.3、dictName参数like注入</h3><p>同上</p>
+<p>注意：以下位置是不能被预编译的，审计时可以着重关注一下</p>
+<ul>
+<li>表名&#x2F;字段名 </li>
+<li>order by&#x2F;group by </li>
+<li>like模糊查询 </li>
+<li>in</li>
+</ul>
+<h2 id="2、XSS漏洞审计"><a href="#2、XSS漏洞审计" class="headerlink" title="2、XSS漏洞审计"></a>2、XSS漏洞审计</h2><p>熟悉代码后快速<strong>全局搜索是否存在”XSS”，”xssfilter”,以及是否含有常见的对JS标签进行黑名单过滤的工具</strong>，如果没有，那大概率是没有进行XSS漏洞的防御的</p>
+<p>经过检索，没有发现该项目存在XSS的防御代码，所以大概率是全站XSS，随意验证几个，如下</p>
+<ul>
+<li>新增&#x2F;编辑用户</li>
+<li>新增&#x2F;编辑角色</li>
+<li>新增&#x2F;编辑菜单</li>
+<li>新增&#x2F;编辑部门</li>
+<li>新增&#x2F;编辑岗位</li>
+<li>新增&#x2F;编辑字典</li>
+<li>日志记录功能造成的“操作日志”</li>
+</ul>
+<h3 id="2-1、layui框架"><a href="#2-1、layui框架" class="headerlink" title="2.1、layui框架"></a>2.1、layui框架</h3><p>并且在测试XSS的时候还发现了前端框架为layui，所以针对Layui再进行研究，如下</p>
+<p>全局搜索layui-v，如下</p>
+<p><img src="/2023/12/03/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94RBAC%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/1701566877104-e1d3896f-125b-4556-9fea-81353b5fab88.png" alt="img"></p>
+<p>得到Layui的版本为5.2.6</p>
+<p>在网上并没有检索到layui框架有关xss的问题，师傅分享的Layui的Github上的issue已经被删除</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/sentsin/layui/issues/711">https://github.com/sentsin/layui/issues/711</a></p>
+<p>所以去找了找，发现”疯癫兄”师傅提交的rbac审计作业中截了issue的图，所以能了解到该漏洞的详情，如下</p>
+<p><img src="/2023/12/03/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94RBAC%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/1701567170788-d31f2ff2-9107-40c9-9d6b-59ce63b45bf6.png" alt="img"></p>
+<p>通过上面的issue得到以下结论</p>
+<ul>
+<li><strong>1、</strong>Layui的2.6.8版本之前Table组件默认不转义HTML，需要转义的话要手动在所有的列定义中加上如下代码</li>
+</ul>
+<pre><code>templet:&quot;&#123;&#123;= d.field &#125;&#125;&quot;
+</code></pre>
+<ul>
+<li><strong>2、</strong>2.6.8版本之后增加了escape参数，通过配置该参数为true即可对xss相关字符进行过滤</li>
+<li><strong>3、</strong>2.6.11版本默认table的escape参数为true，即默认开启编码</li>
+</ul>
+<p>因为太久没用过layui了，所以对table组件也比较陌生，所以这里查看官方文档简单学习了一下，官方文档链接如下</p>
+<p><a target="_blank" rel="noopener" href="https://layui.dev/docs/2/table/">https://layui.dev/docs/2/table/</a></p>
+<p>Layui的table模块提供的三种渲染方式——方法渲染、自动渲染和静态表格，各有特点，（有兴趣的可以看官方文档学习一下）</p>
+<p>我简单整理了一下如何快速查看当前项目用的table模块是哪种渲染方式，都没有的话就是没有用table模块</p>
+<ol>
+<li><strong>方法渲染</strong>：搜索JavaScript文件中的“table.render”或“layui.table.render”等关键字。</li>
+<li><strong>自动渲染</strong>：在HTML文件中搜索包含“layui-table”类名的table标签，并检查是否含有“lay-data”属性。</li>
+<li><strong>静态表格</strong>：在HTML文件中搜索包含“layui-table”类名的table标签，但不包含JavaScript代码或“lay-data”属性。</li>
+</ol>
+<p>通过检索，发现js文件中存在”table.render”关键字</p>
+<p><img src="/2023/12/03/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94RBAC%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/1701568344128-221878f3-1f20-47bc-ba2a-fb62ebc3fac8.png" alt="img"></p>
+<p>所以此处使用了”方法渲染”，来到该位置</p>
+<p><img src="/2023/12/03/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94RBAC%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/1701568865907-37c03dbd-08a2-4e53-9ab2-4228c5534349.png" alt="img"></p>
+<p>通过注释和对代码的分析，发现该功能用于渲染表格的数据内容，又由刚才的issue可知，这里的渲染是默认不编码，所以默认存在XSS漏洞，才会造成前面我们测试XSS时有表格的地方基本都存在XSS漏洞的情况</p>
+<h2 id="3、业务逻辑漏洞"><a href="#3、业务逻辑漏洞" class="headerlink" title="3、业务逻辑漏洞"></a>3、业务逻辑漏洞</h2><p>（1）<strong>先看权限控制</strong></p>
+<p>观察是否动态使用了五张表完成了权限与用户，角色的动态绑定，并正确配置</p>
+<ul>
+<li>用户表（my_user）</li>
+<li>角色表（my_role）</li>
+<li>权限表（my_menu）</li>
+<li>用户角色关联表（my_role_user）</li>
+<li>角色权限关联表（my_role_menu）</li>
+</ul>
+<p>可以从数据库中观察到确实使用了对应的五张表</p>
+<p><img src="/2023/12/03/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94RBAC%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/1701570808854-b5a28a99-5c8b-495b-8028-edda51f70cf2.png" alt="img"></p>
+<p>通过对照权限表和角色权限关联表判断开发人员设置的权限是否有不合理的地方</p>
+<p><img src="/2023/12/03/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94RBAC%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/1701586228000-7a28cc56-6952-4a20-82a5-b89ad9bf353a.png" alt="img"></p>
+<p>发现开发人员默认给了普通用户删除用户的权限，我们验证一下管理员账户是否有权限配置功能</p>
+<p><img src="/2023/12/03/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94RBAC%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/1701587128610-995346dd-41e1-4f2d-af75-ea0cff8af9ee.png" alt="img"></p>
+<p>可以看到开发人员是默认给了普通用户对用户增删改的操作的</p>
+<p>我们登录一个普通用户后台看看，如下</p>
+<p><img src="/2023/12/03/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94RBAC%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/1701586818454-4bab4c67-f6a8-43e3-b23d-df8500aa58dd.png" alt="img"></p>
+<p>发现普通用户登录并看不到其他用户，但是又有对其他用户的操作权限，所以这里存在替换cookie或者改ID来越权操作其他用户</p>
+<p>归结原因就是因为管理员默认开启普通用户的操作权限，关闭之后就不会有该问题</p>
+<p>注意：我看其他师傅审这个系统时，从代码层面开始，例如</p>
+<p><img src="/2023/12/03/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94RBAC%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/1701588012350-ca30d3dd-cd45-4c2d-93eb-55bf230d2eb3.png" alt="img"></p>
+<p>这里是有问题的，这里使用了@PreAuthorize(“hasAnyAuthority(‘user:del’)”)进行权限关联，限定拥有user:del权限的用户才能发起这个请求，如果用户没有 ‘user:del’ 这个权限，Spring Security会拒绝这个请求，不会执行这个方法。，所以这里的代码层面是没有问题的，有问题的只是管理员的错误配置。</p>
+<p>（2）看是否使用了成熟的权限校验框架</p>
+<p>这里的权限校验框架一般就是Spring security或者shiro</p>
+<p>经过前面分析pom文件时观察导入的依赖，得出了该项目是使用了Spring security组件配合jwt来实现动态权限校验的,所以观察SpringSecurityConfig类，这就是Spring security的配置文件，如下</p>
+<p><img src="/2023/12/03/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94RBAC%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/1701571410922-f46638bf-b64c-46bd-84b0-70753cf94f4a.png" alt="img"></p>
+<p>可以看到放行的静态资源中有很多敏感的接口，这就属于配置错误了，所以这里存在接口未授权访问漏洞</p>
+<p>（3）看数据是如何鉴权的</p>
+<ul>
+<li>分析详细的api和业务系统——看数据是否公开，公开就忽略</li>
+<li>看各自的数据获取是否合理——对于私有的数据，<strong>是否校验了当前用户登录的身份</strong></li>
+</ul>
+<h2 id="4、图形验证码"><a href="#4、图形验证码" class="headerlink" title="4、图形验证码"></a>4、图形验证码</h2><p>全局搜索关键字captcha，寻找相关代码，如下</p>
+<p><img src="/2023/12/03/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94RBAC%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/1701572554421-9c30cba3-68ff-4697-9ffe-95ed94920728.png" alt="img"></p>
+<p>经过检索，发现图形验证码的验证逻辑位于VerifyCodeFilter这个Filter类中</p>
+<p><img src="/2023/12/03/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94RBAC%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/1701572622178-4009504c-a6cb-4833-affb-76e3babafc75.png" alt="img"></p>
+<p>此时就需要我我们来分析一下这个代码逻辑了，经过分析之后简单的流程ruxa</p>
+<ul>
+<li>检查请求方法是否为 “POST”，并且请求的URL是否为 “&#x2F;login”。</li>
+<li>从请求中获取会话（session）。</li>
+<li>获取用户提供的验证码（captcha）以及会话中生成的验证码。</li>
+<li>处理用户提供的验证码为空的情况。如果为空，从会话中删除验证码并返回一个包含错误信息的 JSON 响应。</li>
+<li>如果不存在验证码为空的情况，就直接chain.doFilter(request, response)放行了该请求</li>
+</ul>
+<p>注意：这里观察到注释内容为判断验证码是否过期和用户输入的验证码与生成的验证码是否匹配，但是这两个判断均被注释了，所以导致即使验证码过期或验证码错误也不会被拦截，即只要验证码不为空就能通过验证码校验机制，猜测是开发人员为了开发方便注释了该代码，但项目上线之后未取消注释，从而造成了验证码绕过漏洞</p>
+<h1 id="四、漏洞验证"><a href="#四、漏洞验证" class="headerlink" title="四、漏洞验证"></a>四、漏洞验证</h1><h2 id="1、Actuator未授权访问漏洞"><a href="#1、Actuator未授权访问漏洞" class="headerlink" title="1、Actuator未授权访问漏洞"></a>1、Actuator未授权访问漏洞</h2><p>直接扫Spring的目录，结果如下（这里使用的工具是Caesar）</p>
+<p><img src="/2023/12/03/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94RBAC%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/1701590889965-ba569584-3165-4d08-9748-679e6da7cffb.png" alt="img"></p>
+<p>其中env包含了了全部环境属性，如下</p>
+<p><img src="/2023/12/03/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94RBAC%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/1701591175366-30616dd6-dfec-42c6-a046-7bb911d3171e.png" alt="img"></p>
+<p>搜索（<em>），可以看到被星号脱敏的密码，观察其与spring.datasource.password对应，应该是数据库的密码，如果这里&#x2F;heapdump端点也开放的话，就可以尝试访问</em>*&#x2F;actuator&#x2F;heapdump**来获取明文密码。但刚才我们查看配置文件时，显示是没有开放&#x2F;heapdump，也就无法更深层次的利用</p>
+<p>即这里Actuator的未授权漏洞造成的危害仅限于以下三个端点开放造成的信息泄露</p>
+<ul>
+<li>&#x2F;beans</li>
+<li>&#x2F;env</li>
+<li>&#x2F;metrics</li>
+</ul>
+<h2 id="2、swagger未授权访问漏洞"><a href="#2、swagger未授权访问漏洞" class="headerlink" title="2、swagger未授权访问漏洞"></a>2、swagger未授权访问漏洞</h2><p>访问&#x2F;swagger-ui.html</p>
+<p><img src="/2023/12/03/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94RBAC%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/1701595993806-f00c1ea9-dd18-43e6-b52e-5e0c8027b365.png" alt="img"></p>
+<p>使用swagger工具快速测试，工具链接如下</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/jayus0821/swagger-hack">https://github.com/jayus0821/swagger-hack</a></p>
+<p>并未发现存在问题的接口，所以这里也就无法进行深度利用，所以此处仅存在swagger接口文档泄露，即Swagger未授权访问漏洞</p>
+<h2 id="3、Druid密码可爆破漏洞（无危害）"><a href="#3、Druid密码可爆破漏洞（无危害）" class="headerlink" title="3、Druid密码可爆破漏洞（无危害）"></a>3、Druid密码可爆破漏洞（无危害）</h2><p>上面我们审计了Druid的未授权访问漏洞不存在，但是存在密码可爆破漏洞，所以这里我们来验证一下，访问&#x2F;druid接口，如下</p>
+<p>但这里发现了一个问题，<strong>这个密码可爆破漏洞并不能算一个漏洞</strong>，因为此处开发人员并没有把druid公开，而是只允许本地访问(也就是127.0.0.1)，其他IP访问时，会被拦截，页面如下</p>
+<p><img src="/2023/12/03/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94RBAC%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/1701597619548-5b3c2675-6a12-44f4-b5d0-1c702b048cfe.png" alt="img"></p>
+<p>再来看看druid的配置，如下</p>
+<p><img src="/2023/12/03/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94RBAC%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/1701597454258-8f3c02e0-9fb4-493d-a886-0904d38e5382.png" alt="img"></p>
+<p>查了一下，其实druid默认是不公开的，需要添加allow：才会允许所有主机访问，如下</p>
+<p><img src="/2023/12/03/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94RBAC%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/1701597336196-e54b0faa-22e6-4fb7-a567-267e513d5b82.png" alt="img"></p>
+<p>此时其他主机访问到这个druid才会展示登录页面</p>
+<p><img src="/2023/12/03/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94RBAC%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/1701597744975-43ef9cf7-65fd-4910-8d5a-9db3c6a7baa8.png" alt="img"></p>
+<p>爆破的过程就不讲了，就burp账户设置为admin,跑密码字典,根据回显长度判断正确的密码，前面师傅的文章有截图，可以去看看</p>
+<h2 id="4、SQL注入漏洞"><a href="#4、SQL注入漏洞" class="headerlink" title="4、SQL注入漏洞"></a>4、SQL注入漏洞</h2><p>经过上面的SQL审计，我们发现了3个SQL注入漏洞，这里就简单验证一个，其他的师傅们自己下去验证即可</p>
+<p>来到用户查询页面</p>
+<p><img src="/2023/12/03/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94RBAC%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/1701598946590-3092aa2f-0e4f-47bb-a288-0c9124f809d8.png" alt="img"></p>
+<p>开启，burp。任意输入之后点击查询，再把这个包丢给Sqlmap即可</p>
+<p><img src="/2023/12/03/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94RBAC%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/1701598873770-c949578a-04f6-4f2b-86d4-2ae3065f80c2.png" alt="img"></p>
+<p>可以看到成功跑出了数据库列表</p>
+<h2 id="5、XSS漏洞"><a href="#5、XSS漏洞" class="headerlink" title="5、XSS漏洞"></a>5、XSS漏洞</h2><p>这个就更多了，上面审计的时候我也说了哪些地方存在XSS，这里也是验证一个即可</p>
+<p>任意找一个表格功能的增加或编辑功能，添加payload</p>
+<p><img src="/2023/12/03/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94RBAC%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/1701599217840-19575126-189c-475e-b52a-b1ecc44ad9f3.png" alt="img"></p>
+<p>提交保存即可成功弹窗</p>
+<p><img src="/2023/12/03/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94RBAC%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/1701599268735-f68fca15-349b-4a3d-97a1-407fc4bdac9c.png" alt="img"></p>
+<h2 id="6、业务逻辑漏洞"><a href="#6、业务逻辑漏洞" class="headerlink" title="6、业务逻辑漏洞"></a>6、业务逻辑漏洞</h2><p>上面我们审计到了因为管理员的错误配置导致普通用户可以越权删除其他用户，下面来验证一下</p>
+<p>登录test这个普通用户，来到用户管理页面</p>
+<p><img src="/2023/12/03/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94RBAC%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/1701599859314-f33a4097-6bb0-4bc5-b279-1e33ed3fc1a9.png" alt="img"></p>
+<p>可以看到只能看到和操作test6用户</p>
+<p>此时开启burp，点击删除用户，抓到如下数据包</p>
+<p><img src="/2023/12/03/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94RBAC%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/1701599933636-2e5bd0a3-a887-4cbd-b95b-1202ef2532de.png" alt="img"></p>
+<p>查看数据库发现修改的是id为8的用户</p>
+<p><img src="/2023/12/03/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94RBAC%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/1701599963946-c78bb421-cb80-4d1a-bdda-0ddf1b56db9b.png" alt="img"></p>
+<p>此时把8改为5，尝试删除“封禁用户”</p>
+<p><img src="/2023/12/03/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94RBAC%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/1701600005372-139aa7a9-89c1-4382-be55-ab8cd340250f.png" alt="img"></p>
+<p>删除成功，来到数据库检查</p>
+<p><img src="/2023/12/03/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94RBAC%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/1701600033133-3f094b5b-3524-491d-ab1d-a8aaee94a10a.png" alt="img"></p>
+<p>可以看到”封禁用户”已经被越权删除了，即存在<strong>越权删除用户漏洞</strong></p>
+<h2 id="7、图形验证码失效漏洞"><a href="#7、图形验证码失效漏洞" class="headerlink" title="7、图形验证码失效漏洞"></a>7、图形验证码失效漏洞</h2><p>上面审计图形验证码时我们得知</p>
+<p>开发人员为了开发方便，注释了判断验证码失效和判断验证码正误的代码，但项目上线时忘记取消注释，所以这里的验证码只需要不为空并且为4位字符即可，不会校验正误，如下</p>
+<p><img src="/2023/12/03/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94RBAC%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/1701600223717-4fb5db10-0635-442c-b478-c009d91c7064.png" alt="img"></p>
+<h1 id="五、总结"><a href="#五、总结" class="headerlink" title="五、总结"></a>五、总结</h1><p>这是我学习Java代码审计之后审计的第一个完整项目，花了2天时间，中间有很多代码的写法以及组件没有用过，导致比较陌生，所以需要花时间去查，去学，期间也发现了很多问题，熟悉了一些常用的组件，如何配置会有问题，如何配置才能安全。并且加深了我对权限管理一块的知识的理解。总结下来还是收获满满，成就感十足。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="http://example.com">庆尘</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="http://example.com/2023/12/03/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94RBAC%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/">http://example.com/2023/12/03/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94RBAC%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://example.com" target="_blank">Daydust's Blog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">代码审计</a><a class="post-meta__tags" href="/tags/Spring/">Spring</a></div><div class="post_share"><div class="social-share" data-image="/img/avater.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2023/11/30/Spring-security-RegexRequestMatcher%E8%AE%A4%E8%AF%81%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E/" title="Spring-security RegexRequestMatcher认证绕过漏洞"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">Spring-security RegexRequestMatcher认证绕过漏洞</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2023/11/30/Spring-security-RegexRequestMatcher%E8%AE%A4%E8%AF%81%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E/" title="Spring-security RegexRequestMatcher认证绕过漏洞"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-11-30</div><div class="title">Spring-security RegexRequestMatcher认证绕过漏洞</div></div></a></div><div><a href="/2023/11/03/%E5%AF%B9SQL%E6%B3%A8%E5%85%A5%E6%BC%8F%E6%B4%9E%E5%8E%9F%E7%90%86%E7%9A%84%E6%80%9D%E8%80%83/" title="对SQL注入漏洞原理的思考"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-11-03</div><div class="title">对SQL注入漏洞原理的思考</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/avater.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">庆尘</div><div class="author-info__description">有些人说看不到未来,其实是看到了未来</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">9</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">9</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/daydust" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="https://blog.csdn.net/qq_63844103?type=blog" target="_blank" title="CSDN"><i class="fa fa-book-open"></i></a><a class="social-icon" href="mailto:1597128781@qq.com" target="_blank" title="Email"><i class="fas fa-envelope-open-text"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">不要让时代的悲哀，成为你的悲哀</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content is-expand"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E9%A1%B9%E7%9B%AE%E9%83%A8%E7%BD%B2"><span class="toc-text">一、项目部署</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1%E3%80%81Java%E7%8E%AF%E5%A2%83"><span class="toc-text">1、Java环境</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2%E3%80%81Maven"><span class="toc-text">2、Maven</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3%E3%80%81Mysql%E7%8E%AF%E5%A2%83%E9%83%A8%E7%BD%B2"><span class="toc-text">3、Mysql环境部署</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4%E3%80%81%E9%A1%B9%E7%9B%AE%E6%90%AD%E5%BB%BA"><span class="toc-text">4、项目搭建</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5%E3%80%81%E9%A1%B9%E7%9B%AE%E5%90%AF%E5%8A%A8"><span class="toc-text">5、项目启动</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E7%BB%84%E4%BB%B6%E6%BC%8F%E6%B4%9E%E5%AE%A1%E8%AE%A1"><span class="toc-text">二、组件漏洞审计</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1%E3%80%81Spring-boot"><span class="toc-text">1、Spring boot</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2%E3%80%81Spring-security"><span class="toc-text">2、Spring security</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3%E3%80%81Actuator"><span class="toc-text">3、Actuator</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4%E3%80%81Fastjson"><span class="toc-text">4、Fastjson</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5%E3%80%81thymeleaf"><span class="toc-text">5、thymeleaf</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5"><span class="toc-text">模板注入</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#XSS"><span class="toc-text">XSS</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6%E3%80%81Mybatis"><span class="toc-text">6、Mybatis</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7%E3%80%81swagger2"><span class="toc-text">7、swagger2</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8%E3%80%81Druid%E6%BC%8F%E6%B4%9E%E5%AE%A1%E8%AE%A1"><span class="toc-text">8、Druid漏洞审计</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE"><span class="toc-text">未授权访问</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AF%86%E7%A0%81%E5%8F%AF%E7%88%86%E7%A0%B4"><span class="toc-text">密码可爆破</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#9%E3%80%81easy-captcha"><span class="toc-text">9、easy-captcha</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#10%E3%80%81oshi"><span class="toc-text">10、oshi</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#11%E3%80%81Pagehelper"><span class="toc-text">11、Pagehelper</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#12%E3%80%81hutool"><span class="toc-text">12、hutool</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E5%8D%95%E7%82%B9%E6%BC%8F%E6%B4%9E%E5%AE%A1%E8%AE%A1"><span class="toc-text">三、单点漏洞审计</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1%E3%80%81SQL%E6%B3%A8%E5%85%A5%E6%BC%8F%E6%B4%9E%E5%AE%A1%E8%AE%A1"><span class="toc-text">1、SQL注入漏洞审计</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1%E3%80%81nickName%E5%8F%82%E6%95%B0like%E6%B3%A8%E5%85%A5"><span class="toc-text">1.1、nickName参数like注入</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2%E3%80%81userName%E5%8F%82%E6%95%B0like%E6%B3%A8%E5%85%A5"><span class="toc-text">1.2、userName参数like注入</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3%E3%80%81dictName%E5%8F%82%E6%95%B0like%E6%B3%A8%E5%85%A5"><span class="toc-text">1.3、dictName参数like注入</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2%E3%80%81XSS%E6%BC%8F%E6%B4%9E%E5%AE%A1%E8%AE%A1"><span class="toc-text">2、XSS漏洞审计</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1%E3%80%81layui%E6%A1%86%E6%9E%B6"><span class="toc-text">2.1、layui框架</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3%E3%80%81%E4%B8%9A%E5%8A%A1%E9%80%BB%E8%BE%91%E6%BC%8F%E6%B4%9E"><span class="toc-text">3、业务逻辑漏洞</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4%E3%80%81%E5%9B%BE%E5%BD%A2%E9%AA%8C%E8%AF%81%E7%A0%81"><span class="toc-text">4、图形验证码</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E6%BC%8F%E6%B4%9E%E9%AA%8C%E8%AF%81"><span class="toc-text">四、漏洞验证</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1%E3%80%81Actuator%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E"><span class="toc-text">1、Actuator未授权访问漏洞</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2%E3%80%81swagger%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E"><span class="toc-text">2、swagger未授权访问漏洞</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3%E3%80%81Druid%E5%AF%86%E7%A0%81%E5%8F%AF%E7%88%86%E7%A0%B4%E6%BC%8F%E6%B4%9E%EF%BC%88%E6%97%A0%E5%8D%B1%E5%AE%B3%EF%BC%89"><span class="toc-text">3、Druid密码可爆破漏洞（无危害）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4%E3%80%81SQL%E6%B3%A8%E5%85%A5%E6%BC%8F%E6%B4%9E"><span class="toc-text">4、SQL注入漏洞</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5%E3%80%81XSS%E6%BC%8F%E6%B4%9E"><span class="toc-text">5、XSS漏洞</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6%E3%80%81%E4%B8%9A%E5%8A%A1%E9%80%BB%E8%BE%91%E6%BC%8F%E6%B4%9E"><span class="toc-text">6、业务逻辑漏洞</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7%E3%80%81%E5%9B%BE%E5%BD%A2%E9%AA%8C%E8%AF%81%E7%A0%81%E5%A4%B1%E6%95%88%E6%BC%8F%E6%B4%9E"><span class="toc-text">7、图形验证码失效漏洞</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E6%80%BB%E7%BB%93"><span class="toc-text">五、总结</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/12/03/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94RBAC%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/" title="代码审计—RBAC权限管理系统">代码审计—RBAC权限管理系统</a><time datetime="2023-12-03T11:08:28.000Z" title="发表于 2023-12-03 19:08:28">2023-12-03</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/11/30/Spring-security-RegexRequestMatcher%E8%AE%A4%E8%AF%81%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E/" title="Spring-security RegexRequestMatcher认证绕过漏洞">Spring-security RegexRequestMatcher认证绕过漏洞</a><time datetime="2023-11-30T02:24:20.000Z" title="发表于 2023-11-30 10:24:20">2023-11-30</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/11/23/%E4%BD%BF%E7%94%A8frps%E5%92%8Cfrpc%E8%BF%9B%E8%A1%8C%E5%86%85%E7%BD%91%E7%A9%BF%E9%80%8F/" title="使用frps和frpc进行内网穿透">使用frps和frpc进行内网穿透</a><time datetime="2023-11-23T04:00:42.000Z" title="发表于 2023-11-23 12:00:42">2023-11-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/11/04/SSH%E4%B8%A4%E7%A7%8D%E8%BF%9C%E7%A8%8B%E7%99%BB%E5%BD%95%E6%96%B9%E5%BC%8F%E5%8F%8A%E5%8E%9F%E7%90%86%E5%89%96%E6%9E%90/" title="SSH两种远程登录方式及原理剖析">SSH两种远程登录方式及原理剖析</a><time datetime="2023-11-04T03:12:54.000Z" title="发表于 2023-11-04 11:12:54">2023-11-04</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/11/04/%E9%AA%8C%E8%AF%81%E7%A0%81%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98%E6%96%B9%E5%BC%8F(%E4%B8%8B)-%E5%9B%BE%E5%83%8F%E9%AA%8C%E8%AF%81%E7%A0%81/" title="验证码漏洞挖掘方式-下-图像验证码">验证码漏洞挖掘方式-下-图像验证码</a><time datetime="2023-11-04T02:41:59.000Z" title="发表于 2023-11-04 10:41:59">2023-11-04</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2023 By 庆尘</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>

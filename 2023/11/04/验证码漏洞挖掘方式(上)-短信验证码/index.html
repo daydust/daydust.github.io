@@ -1,0 +1,236 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>验证码漏洞挖掘方式(上)-短信验证码 | Daydust's Blog</title><meta name="author" content="庆尘"><meta name="copyright" content="庆尘"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="验证码的安全问题一直都是逻辑漏洞领域的一大话题，当前的验证码主要分为两类，一是“短信验证码”,一个是&quot;图像验证码&quot;，今天的文章要讲解的就是短信验证码的安全性问题">
+<meta property="og:type" content="article">
+<meta property="og:title" content="验证码漏洞挖掘方式(上)-短信验证码">
+<meta property="og:url" content="http://example.com/2023/11/04/%E9%AA%8C%E8%AF%81%E7%A0%81%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98%E6%96%B9%E5%BC%8F(%E4%B8%8A)-%E7%9F%AD%E4%BF%A1%E9%AA%8C%E8%AF%81%E7%A0%81/index.html">
+<meta property="og:site_name" content="Daydust&#39;s Blog">
+<meta property="og:description" content="验证码的安全问题一直都是逻辑漏洞领域的一大话题，当前的验证码主要分为两类，一是“短信验证码”,一个是&quot;图像验证码&quot;，今天的文章要讲解的就是短信验证码的安全性问题">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/avater.jpg">
+<meta property="article:published_time" content="2023-11-04T02:33:47.000Z">
+<meta property="article:modified_time" content="2023-11-04T03:05:01.924Z">
+<meta property="article:author" content="庆尘">
+<meta property="article:tag" content="Web安全">
+<meta property="article:tag" content="逻辑漏洞">
+<meta property="article:tag" content="SRC挖掘">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/avater.jpg"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://example.com/2023/11/04/%E9%AA%8C%E8%AF%81%E7%A0%81%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98%E6%96%B9%E5%BC%8F(%E4%B8%8A)-%E7%9F%AD%E4%BF%A1%E9%AA%8C%E8%AF%81%E7%A0%81/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: undefined,
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '验证码漏洞挖掘方式(上)-短信验证码',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2023-11-04 11:05:01'
+}</script><script>(win=>{
+      win.saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+    
+      win.getScript = (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        script.onerror = reject
+        script.onload = script.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          script.onload = script.onreadystatechange = null
+          resolve()
+        }
+
+        Object.keys(attr).forEach(key => {
+          script.setAttribute(key, attr[key])
+        })
+
+        document.head.appendChild(script)
+      })
+    
+      win.getCSS = (url, id = false) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onerror = reject
+        link.onload = link.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          link.onload = link.onreadystatechange = null
+          resolve()
+        }
+        document.head.appendChild(link)
+      })
+    
+      win.activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+        if (t === 'dark') activateDarkMode()
+        else if (t === 'light') activateLightMode()
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })(window)</script><meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/atom.xml" title="Daydust's Blog" type="application/atom+xml">
+</head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/avater.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">9</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">9</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a href="/" title="Daydust's Blog"><span class="site-name">Daydust's Blog</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">验证码漏洞挖掘方式(上)-短信验证码</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2023-11-04T02:33:47.000Z" title="发表于 2023-11-04 10:33:47">2023-11-04</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2023-11-04T03:05:01.924Z" title="更新于 2023-11-04 11:05:01">2023-11-04</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98/">漏洞挖掘</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">2.8k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>8分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="验证码漏洞挖掘方式(上)-短信验证码"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="基于短信验证码的安全漏洞"><a href="#基于短信验证码的安全漏洞" class="headerlink" title="基于短信验证码的安全漏洞"></a>基于短信验证码的安全漏洞</h1><p>平时测试时，看到下面<strong>短信验证码</strong>你能够想到什么漏洞测试思路？</p>
+<p><img src="/2023/11/04/%E9%AA%8C%E8%AF%81%E7%A0%81%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98%E6%96%B9%E5%BC%8F(%E4%B8%8A)-%E7%9F%AD%E4%BF%A1%E9%AA%8C%E8%AF%81%E7%A0%81/image-20230527111409518.png" alt="image-20230527111409518"></p>
+<p><strong>验证码</strong>的安全问题一直都是逻辑漏洞领域的一大话题，当前的验证码主要分为两类，一是“<strong>短信验证码</strong>”,一个是”<strong>图片验证码</strong>“，当然还有谷歌的图片点击等各种各样的验证码，但目前主流的验证码还是这两个。</p>
+<p>目前，<strong>短信验证码</strong>的安全包含了下面的这几个方面，这也是我测短信验证码漏洞的主要方向</p>
+<ul>
+<li>暴力生成（短信爆破）</li>
+<li>暴力破解</li>
+<li>暴力生成破解</li>
+<li>内容伪造</li>
+<li>服务端回显</li>
+<li>绑定关系失效</li>
+<li>统一初始化</li>
+</ul>
+<p>这里就是我能想到的常规的短信验证码漏洞，也可能还有其他姿势</p>
+<p>本篇文章我们就用这几个漏洞来讨论<strong>短信验证码的安全性</strong>问题</p>
+<h2 id="一、暴力生成"><a href="#一、暴力生成" class="headerlink" title="一、暴力生成"></a>一、暴力生成</h2><p><strong>暴力生成</strong>通俗来讲就是<strong>短信轰炸</strong>，除此之外还有很多名字，<strong>短信接口DDos</strong>，<strong>短信验证码无限发送</strong>等，都是它。</p>
+<p>指的就是开发者对短信验证功能点的发送短信次数没有限制，或者限制不严，导致攻击者可以利用该漏洞对任意手机号无限发送短信，使目标手机持续收到提醒，造成短信轰炸。由于网站发送短信是需要购买短信资源池的，所以在影响目标的同时造成网站的损失。</p>
+<p>那么有人会问了，那该如何挖掘或者测试目标有没有这种漏洞呢？流程如下</p>
+<ul>
+<li><p>先填写你自己的手机号(为了观察效果)</p>
+</li>
+<li><p>开启bp抓包，点击<strong>发送验证码</strong></p>
+</li>
+<li><p>将抓到的发送短信的bp包发到repeater（也就是重放模块）</p>
+</li>
+<li><p>先直接连续点击send观察回显和手机的验证码收取情况</p>
+</li>
+<li><p>受到限制的话就修改请求包尝试绕过</p>
+<ul>
+<li>修改电话号，+86，+特殊符号等</li>
+<li>修改请求包的个别参数（如果请求包传递的参数除了电话号还有其他的）</li>
+</ul>
+</li>
+</ul>
+<p>来看一个案例，某个短信验证发起短信的请求包如下：</p>
+<p><img src="/2023/11/04/%E9%AA%8C%E8%AF%81%E7%A0%81%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98%E6%96%B9%E5%BC%8F(%E4%B8%8A)-%E7%9F%AD%E4%BF%A1%E9%AA%8C%E8%AF%81%E7%A0%81/image-20230531160729891.png" alt="image-20230531160729891"></p>
+<p>可以看到这里传输的参数除了mobile（电话）之外还有一个smsType，而这里是有限制一分钟只能发一次，但是经过测试，修改smsType参数的值，就可以绕过这个限制。</p>
+<p><img src="/2023/11/04/%E9%AA%8C%E8%AF%81%E7%A0%81%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98%E6%96%B9%E5%BC%8F(%E4%B8%8A)-%E7%9F%AD%E4%BF%A1%E9%AA%8C%E8%AF%81%E7%A0%81/image-20230531161356247.png" alt="image-20230531161356247"></p>
+<p>思考一下这是什么原因？因为<strong>smsType</strong>代表短信类型，有可能这个短信是用于登录验证，有一个smsType，而另一个地方用于注册，也需要短信验证码，所以也需要一个短信验证码类型（如果<strong>需要短信验证码不同</strong>的话），简单来说就是下面这样</p>
+<p><img src="/2023/11/04/%E9%AA%8C%E8%AF%81%E7%A0%81%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98%E6%96%B9%E5%BC%8F(%E4%B8%8A)-%E7%9F%AD%E4%BF%A1%E9%AA%8C%E8%AF%81%E7%A0%81/image-20230531162255785.png" alt="image-20230531162255785"></p>
+<p>而他有可能限制你在注册时一分钟只用接收一个验证码，其他的地方没限制，所以可以通过修改这个smsType参数，这个参数也是非常经典的。</p>
+<p>但现在很多厂商已经把验证码做成一样了，比如京东，什么操作的验证码都是一样的类型</p>
+<p><img src="/2023/11/04/%E9%AA%8C%E8%AF%81%E7%A0%81%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98%E6%96%B9%E5%BC%8F(%E4%B8%8A)-%E7%9F%AD%E4%BF%A1%E9%AA%8C%E8%AF%81%E7%A0%81/image-20230531162640848.png" alt="image-20230531162640848"></p>
+<p>所以此时发送验证码时的可控参数只有电话号，这时候只能测测改改电话号，或者尝试下面这些方法</p>
+<p>同时针对这一问题的防御方法也很简单，只需要限制灭每个手机号一个时间段内能发送短信的最大次数即可，比如限制一分钟一次的同时，给每个手机号限制一天最多10次，这样，即使绕过了一分钟限制，也绕不过10次的限制</p>
+<h2 id="二、暴力破解"><a href="#二、暴力破解" class="headerlink" title="二、暴力破解"></a>二、暴力破解</h2><p>短信验证码通常是4位或者6位数字，这也给攻击者爆破带来了可能性，要知道一台普通计算机破解6位数字(（也就是100万个请求），只需要不到1h的时间，更不用说采用分布式来大规模破解了，因此，如果网站对验证码接口不做限制的话，就很可能存在暴力破解的漏洞</p>
+<p><img src="/2023/11/04/%E9%AA%8C%E8%AF%81%E7%A0%81%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98%E6%96%B9%E5%BC%8F(%E4%B8%8A)-%E7%9F%AD%E4%BF%A1%E9%AA%8C%E8%AF%81%E7%A0%81/image-20230531172026425.png" alt="image-20230531172026425"></p>
+<p>这个防御就更简单了，设置最大错误次数，比如错了几次就不让你登录了，3~5次即可</p>
+<h2 id="三、暴力生成破解"><a href="#三、暴力生成破解" class="headerlink" title="三、暴力生成破解"></a>三、暴力生成破解</h2><p>​        有这样一种场景：网站虽然在验证码验证接口设置了最大错误阈值，但是，缺忽略了暴力生成漏洞，也就是短信轰炸漏洞，导致短信验证码可以被无限生成，是否一样会存在被暴力破解导致攻击者获取争取验证码的风险呢？<br>​        没错，在这种场景下，攻击者可以使用暴力生成破解的方法，虽然每个验证码只可以验证一次或几次，但是可以无限生成，攻击者每生成1次就破解1次即可绕过验证次数的限制了<br>​		这样的场景也给我们带来了一些启发：攻防对抗是多因子对抗，在考虑一种防御方法的同时也要考虑其他因子带来的干扰，避免刻舟求剑，墨守成规。</p>
+<h2 id="四、内容伪造"><a href="#四、内容伪造" class="headerlink" title="四、内容伪造"></a>四、内容伪造</h2><p>​        运营商提供短信验证码发送接口时，通常会开放验证码内容的编辑模板，而一些网站，会将验证码内容也作为用户提交的参数进行接收和变更。这样一来，攻击者就可以自定义短信发送的内容。利用自定义的内容来对网站用户批量发送，甚至还可以用来做钓鱼攻击。</p>
+<p><img src="/2023/11/04/%E9%AA%8C%E8%AF%81%E7%A0%81%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98%E6%96%B9%E5%BC%8F(%E4%B8%8A)-%E7%9F%AD%E4%BF%A1%E9%AA%8C%E8%AF%81%E7%A0%81/image-20230531164700187.png" alt="image-20230531164700187"></p>
+<p>某公司的用户找回密码的验证码发送接口存在内容伪造漏洞，验证码默认的内容为：</p>
+<p>​          “【xx 公司】您正在重置登录密码，短信验证码是：406798。”攻击者通过修改短信模板，将内容变为：“【xx公司】由于本行系统升级，请您编辑短信发送到：133xxxx1111，短信内容：XX+客户编号，您的临时客户编号是：406798。”<br>​          受害者如果看到该短信，信以为真，就会将自己的重置密码验证码发送给到攻击者手机，攻击者就可以修改受害者在网站上的登录密码，以受害者的身份信息进行登录了。<br>​          在实际测试中，可通过观察发送短信时，请求包内容是否包含接收短信中的内容来进行判断。若包含，则可以进一步修改短信内容，观察收到的短信内容是否受到影响，来判断漏洞点的存在与否。</p>
+<h2 id="五、服务端回显"><a href="#五、服务端回显" class="headerlink" title="五、服务端回显"></a>五、服务端回显</h2><p>服务端回显短信验证码马是十分常见的一种漏洞，网站开发人员可能为了调试的方便，有时会将短信验证码发送的数字回显在发送成功的响应报文，也就是bp抓包的回显包。</p>
+<p><img src="/2023/11/04/%E9%AA%8C%E8%AF%81%E7%A0%81%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98%E6%96%B9%E5%BC%8F(%E4%B8%8A)-%E7%9F%AD%E4%BF%A1%E9%AA%8C%E8%AF%81%E7%A0%81/image-20230531171631722.png" alt="image-20230531171631722"></p>
+<p>由于短信发送接口大多数都采用AJAX架构涉及，发送成功时用户界面正常只能看到“发送成功”的字样，并不会把验证码信息显示出来（正经人谁抓包），所以此时攻击者就可以抓包直接获取短信验证码。</p>
+<p><img src="/2023/11/04/%E9%AA%8C%E8%AF%81%E7%A0%81%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98%E6%96%B9%E5%BC%8F(%E4%B8%8A)-%E7%9F%AD%E4%BF%A1%E9%AA%8C%E8%AF%81%E7%A0%81/image-20230531171649031.png" alt="image-20230531171649031"></p>
+<p>看似平平无奇的一个打印操作，带来的后果却是十分严重的。</p>
+<h2 id="六、绑定关系失效"><a href="#六、绑定关系失效" class="headerlink" title="六、绑定关系失效"></a>六、绑定关系失效</h2><p>​        短信验证码失效是指短信验证码原本需要与手机号进行绑起，而在验证环节并没有验证验证手机号绑定关系，形成漏洞。<br>​        该漏洞表现为：当攻击者发送验证短信时使用自己的手机号进行发送，而在提交验证码时，从数据包中篡改手机号信息，从而使用其他手机号完成注册、登录或绑定等，简单来说就是用自己的电话号注册任意用户，形成<strong>任意手机号注册或登录漏洞</strong>。</p>
+<p><img src="/2023/11/04/%E9%AA%8C%E8%AF%81%E7%A0%81%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98%E6%96%B9%E5%BC%8F(%E4%B8%8A)-%E7%9F%AD%E4%BF%A1%E9%AA%8C%E8%AF%81%E7%A0%81/image-20230531171114532.png" alt="image-20230531171114532"></p>
+<p>该漏洞形成的原因一般有以下几种。</p>
+<ul>
+<li><p>1)服务器将验证码与Session绑定，而未与发送短信时的手机号进行绑定，或只在前端限制手机号不可修改。</p>
+</li>
+<li><p>2)服务器最终提交的接口中允许有<strong>两个手机号字段</strong>：验证码对应的验证手机号、用户实际提交的希望注册或绑定的手机号。两个字段不一致，但服务器并未校验。此时输入自己手机收到的验证码并点击提交抓包</p>
+<ul>
+<li>把电话末尾加逗号，再跟一个电话，看能否同时注册两个</li>
+<li>比如账户参数是mobile，则再写一个mobile参数并传第二个手机号</li>
+</ul>
+</li>
+<li><p>3)服务端在Session中保存所发送手机号的记录，但攻击者通过覆盖发送记录的方法绕过。</p>
+</li>
+</ul>
+<p>对于该漏洞的防御，需要在判断用户提交的短信验证码时，严格校验该验证码发送时所对应的手机号，在用户提交其他参数时也应当校验参数中的手机号字段与验证手机号是否一致。</p>
+<h2 id="七、统一初始化"><a href="#七、统一初始化" class="headerlink" title="七、统一初始化"></a>七、统一初始化</h2><p>​       统一初始化短信验证码是指短信验证码存在默认值，当一个手机号从未发送过短信验证码时直接验证可使用如“000000”“null”“none”“0”等字段进行校验。<br>​       该漏洞是由于开发人员在数据库初始化时为验证码字段设置默认值导致的。另外一种情况，对于一些有测试环境的应用，开发人员为了调试方便往往使用较为简单的短信验证码，如“123456”“000000”。当迁移到生产环境后，忘记对数据库中的验证码字段进行删除。</p>
+<p>​       测试时，可以先使用BurpSuite 拦截发送验证码的请求，然后使用“000000”“0”等可能的初始化值进行提交判断。<br>​       测试该漏洞时，可利用“smscode&#x3D;”来提交一个值为空的数据(smscode 代指当前网站短信验证码参数的名称，需要结合实际情况进行修改)。<br>​       防御该漏洞，需要避免将测试数据带入到生产环境，不设置统一的初始化验证码。并且，为每次接收短信验证码的手机修改状态，在用户提交验证校验码是否正确的请求时，判断该手机号是否已进行发送验证码的流程，若从未发送过验证码，网站应当返回验证失败。</p>
+<h1 id="八、随意验证码"><a href="#八、随意验证码" class="headerlink" title="八、随意验证码"></a>八、随意验证码</h1><p>获取验证码之后随意填写，只要位数对就行，说白了就是开发层面没有进行校验验证码是否正确、 </p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="http://example.com">庆尘</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="http://example.com/2023/11/04/%E9%AA%8C%E8%AF%81%E7%A0%81%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98%E6%96%B9%E5%BC%8F(%E4%B8%8A)-%E7%9F%AD%E4%BF%A1%E9%AA%8C%E8%AF%81%E7%A0%81/">http://example.com/2023/11/04/%E9%AA%8C%E8%AF%81%E7%A0%81%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98%E6%96%B9%E5%BC%8F(%E4%B8%8A)-%E7%9F%AD%E4%BF%A1%E9%AA%8C%E8%AF%81%E7%A0%81/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://example.com" target="_blank">Daydust's Blog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Web%E5%AE%89%E5%85%A8/">Web安全</a><a class="post-meta__tags" href="/tags/%E9%80%BB%E8%BE%91%E6%BC%8F%E6%B4%9E/">逻辑漏洞</a><a class="post-meta__tags" href="/tags/SRC%E6%8C%96%E6%8E%98/">SRC挖掘</a></div><div class="post_share"><div class="social-share" data-image="/img/avater.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2023/11/04/%E9%AA%8C%E8%AF%81%E7%A0%81%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98%E6%96%B9%E5%BC%8F(%E4%B8%8B)-%E5%9B%BE%E5%83%8F%E9%AA%8C%E8%AF%81%E7%A0%81/" title="验证码漏洞挖掘方式-下-图像验证码"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">验证码漏洞挖掘方式-下-图像验证码</div></div></a></div><div class="next-post pull-right"><a href="/2023/11/04/%E5%A4%A7%E5%9E%8BWeb%E8%B5%84%E4%BA%A7%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86/" title="大型Web资产信息收集"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">大型Web资产信息收集</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2023/11/04/%E9%AA%8C%E8%AF%81%E7%A0%81%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98%E6%96%B9%E5%BC%8F(%E4%B8%8B)-%E5%9B%BE%E5%83%8F%E9%AA%8C%E8%AF%81%E7%A0%81/" title="验证码漏洞挖掘方式-下-图像验证码"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-11-04</div><div class="title">验证码漏洞挖掘方式-下-图像验证码</div></div></a></div><div><a href="/2023/11/04/SSH%E4%B8%A4%E7%A7%8D%E8%BF%9C%E7%A8%8B%E7%99%BB%E5%BD%95%E6%96%B9%E5%BC%8F%E5%8F%8A%E5%8E%9F%E7%90%86%E5%89%96%E6%9E%90/" title="SSH两种远程登录方式及原理剖析"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-11-04</div><div class="title">SSH两种远程登录方式及原理剖析</div></div></a></div><div><a href="/2023/11/04/%E5%A4%A7%E5%9E%8BWeb%E8%B5%84%E4%BA%A7%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86/" title="大型Web资产信息收集"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-11-04</div><div class="title">大型Web资产信息收集</div></div></a></div><div><a href="/2023/11/03/%E5%AF%B9SQL%E6%B3%A8%E5%85%A5%E6%BC%8F%E6%B4%9E%E5%8E%9F%E7%90%86%E7%9A%84%E6%80%9D%E8%80%83/" title="对SQL注入漏洞原理的思考"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-11-03</div><div class="title">对SQL注入漏洞原理的思考</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/avater.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">庆尘</div><div class="author-info__description">有些人说看不到未来,其实是看到了未来</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">9</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">9</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/daydust" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="https://blog.csdn.net/qq_63844103?type=blog" target="_blank" title="CSDN"><i class="fa fa-book-open"></i></a><a class="social-icon" href="mailto:1597128781@qq.com" target="_blank" title="Email"><i class="fas fa-envelope-open-text"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">不要让时代的悲哀，成为你的悲哀</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content is-expand"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%9F%BA%E4%BA%8E%E7%9F%AD%E4%BF%A1%E9%AA%8C%E8%AF%81%E7%A0%81%E7%9A%84%E5%AE%89%E5%85%A8%E6%BC%8F%E6%B4%9E"><span class="toc-text">基于短信验证码的安全漏洞</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E6%9A%B4%E5%8A%9B%E7%94%9F%E6%88%90"><span class="toc-text">一、暴力生成</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E6%9A%B4%E5%8A%9B%E7%A0%B4%E8%A7%A3"><span class="toc-text">二、暴力破解</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E6%9A%B4%E5%8A%9B%E7%94%9F%E6%88%90%E7%A0%B4%E8%A7%A3"><span class="toc-text">三、暴力生成破解</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E5%86%85%E5%AE%B9%E4%BC%AA%E9%80%A0"><span class="toc-text">四、内容伪造</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E6%9C%8D%E5%8A%A1%E7%AB%AF%E5%9B%9E%E6%98%BE"><span class="toc-text">五、服务端回显</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E7%BB%91%E5%AE%9A%E5%85%B3%E7%B3%BB%E5%A4%B1%E6%95%88"><span class="toc-text">六、绑定关系失效</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E7%BB%9F%E4%B8%80%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="toc-text">七、统一初始化</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E9%9A%8F%E6%84%8F%E9%AA%8C%E8%AF%81%E7%A0%81"><span class="toc-text">八、随意验证码</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/12/03/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94RBAC%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/" title="代码审计—RBAC权限管理系统">代码审计—RBAC权限管理系统</a><time datetime="2023-12-03T11:08:28.000Z" title="发表于 2023-12-03 19:08:28">2023-12-03</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/11/30/Spring-security-RegexRequestMatcher%E8%AE%A4%E8%AF%81%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E/" title="Spring-security RegexRequestMatcher认证绕过漏洞">Spring-security RegexRequestMatcher认证绕过漏洞</a><time datetime="2023-11-30T02:24:20.000Z" title="发表于 2023-11-30 10:24:20">2023-11-30</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/11/23/%E4%BD%BF%E7%94%A8frps%E5%92%8Cfrpc%E8%BF%9B%E8%A1%8C%E5%86%85%E7%BD%91%E7%A9%BF%E9%80%8F/" title="使用frps和frpc进行内网穿透">使用frps和frpc进行内网穿透</a><time datetime="2023-11-23T04:00:42.000Z" title="发表于 2023-11-23 12:00:42">2023-11-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/11/04/SSH%E4%B8%A4%E7%A7%8D%E8%BF%9C%E7%A8%8B%E7%99%BB%E5%BD%95%E6%96%B9%E5%BC%8F%E5%8F%8A%E5%8E%9F%E7%90%86%E5%89%96%E6%9E%90/" title="SSH两种远程登录方式及原理剖析">SSH两种远程登录方式及原理剖析</a><time datetime="2023-11-04T03:12:54.000Z" title="发表于 2023-11-04 11:12:54">2023-11-04</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/11/04/%E9%AA%8C%E8%AF%81%E7%A0%81%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98%E6%96%B9%E5%BC%8F(%E4%B8%8B)-%E5%9B%BE%E5%83%8F%E9%AA%8C%E8%AF%81%E7%A0%81/" title="验证码漏洞挖掘方式-下-图像验证码">验证码漏洞挖掘方式-下-图像验证码</a><time datetime="2023-11-04T02:41:59.000Z" title="发表于 2023-11-04 10:41:59">2023-11-04</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2023 By 庆尘</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>

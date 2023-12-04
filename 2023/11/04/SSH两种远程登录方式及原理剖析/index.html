@@ -1,0 +1,275 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>SSH两种远程登录方式及原理剖析 | Daydust's Blog</title><meta name="author" content="庆尘"><meta name="copyright" content="庆尘"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="SSH的登录方式有哪些？还在用密码登录吗？本文从原理出发，带你了解SSH的两种远程登录方式。教你巧用SSH">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SSH两种远程登录方式及原理剖析">
+<meta property="og:url" content="http://example.com/2023/11/04/SSH%E4%B8%A4%E7%A7%8D%E8%BF%9C%E7%A8%8B%E7%99%BB%E5%BD%95%E6%96%B9%E5%BC%8F%E5%8F%8A%E5%8E%9F%E7%90%86%E5%89%96%E6%9E%90/index.html">
+<meta property="og:site_name" content="Daydust&#39;s Blog">
+<meta property="og:description" content="SSH的登录方式有哪些？还在用密码登录吗？本文从原理出发，带你了解SSH的两种远程登录方式。教你巧用SSH">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/avater.jpg">
+<meta property="article:published_time" content="2023-11-04T03:12:54.000Z">
+<meta property="article:modified_time" content="2023-11-04T03:17:29.931Z">
+<meta property="article:author" content="庆尘">
+<meta property="article:tag" content="Web安全">
+<meta property="article:tag" content="SSH密钥">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/avater.jpg"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://example.com/2023/11/04/SSH%E4%B8%A4%E7%A7%8D%E8%BF%9C%E7%A8%8B%E7%99%BB%E5%BD%95%E6%96%B9%E5%BC%8F%E5%8F%8A%E5%8E%9F%E7%90%86%E5%89%96%E6%9E%90/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: undefined,
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'SSH两种远程登录方式及原理剖析',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2023-11-04 11:17:29'
+}</script><script>(win=>{
+      win.saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+    
+      win.getScript = (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        script.onerror = reject
+        script.onload = script.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          script.onload = script.onreadystatechange = null
+          resolve()
+        }
+
+        Object.keys(attr).forEach(key => {
+          script.setAttribute(key, attr[key])
+        })
+
+        document.head.appendChild(script)
+      })
+    
+      win.getCSS = (url, id = false) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onerror = reject
+        link.onload = link.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          link.onload = link.onreadystatechange = null
+          resolve()
+        }
+        document.head.appendChild(link)
+      })
+    
+      win.activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+        if (t === 'dark') activateDarkMode()
+        else if (t === 'light') activateLightMode()
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })(window)</script><meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/atom.xml" title="Daydust's Blog" type="application/atom+xml">
+</head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/avater.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">9</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">9</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a href="/" title="Daydust's Blog"><span class="site-name">Daydust's Blog</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">SSH两种远程登录方式及原理剖析</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2023-11-04T03:12:54.000Z" title="发表于 2023-11-04 11:12:54">2023-11-04</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2023-11-04T03:17:29.931Z" title="更新于 2023-11-04 11:17:29">2023-11-04</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%AE%89%E5%85%A8%E7%9F%A5%E8%AF%86/">安全知识</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">2.3k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>7分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="SSH两种远程登录方式及原理剖析"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><blockquote>
+<p>  SSH的口令登录，密钥登录，别名登录，绕着绕着就把自己绕晕了，所以写下这篇博客来详细剖析一个SSH的登录方法和原理</p>
+</blockquote>
+<hr>
+<h2 id="一：SSH口令登录"><a href="#一：SSH口令登录" class="headerlink" title="一：SSH口令登录"></a>一：SSH口令登录</h2><h3 id="【1】登录原理"><a href="#【1】登录原理" class="headerlink" title="【1】登录原理"></a>【1】登录原理</h3><p>SSH服务<strong>默认登录方式</strong>为<strong>口令登录</strong>，也是我们平时最常用的，原理如下</p>
+<blockquote>
+<ul>
+<li>1.客户端向服务端发起<strong>请求</strong></li>
+<li>2.服务端收到请求将自己生成的<strong>公钥返回</strong>给客户端</li>
+<li>3.客户端用返回来的公钥<strong>加密</strong>自己的登录密码，发送给服务端</li>
+<li>4.服务端用自己的私钥<strong>解密</strong>，并<strong>验证</strong>密码是否正确，如果正确，允许登录</li>
+</ul>
+</blockquote>
+<p>可以看到整个流程存在四个步骤 ，下面给大家详细讲讲使用方法</p>
+<h3 id="【2】使用教程"><a href="#【2】使用教程" class="headerlink" title="【2】使用教程"></a>【2】使用教程</h3><p>SSH的基本使用方法是：</p>
+<pre><code class="null">ssh user@remote -p port
+</code></pre>
+<ul>
+<li>user 是你在远程机器上的<strong>用户名</strong>，如果不指定的话默认为当前用户</li>
+<li>remote 是远程机器的<strong>地址</strong>，可以是 IP，域名，或者是后面会提到的别名</li>
+<li>port 是 SSH Server 监听的<strong>端口</strong>，如果不指定的话就为默认值 22（ssh的默认端口）</li>
+</ul>
+<blockquote>
+<p>  所以，SSH口令登录的前提就是知道目标的<strong>用户名</strong>，<strong>地址</strong>和SSH服务的<strong>端口</strong>，缺一不可</p>
+</blockquote>
+<h4 id="1-建立连接"><a href="#1-建立连接" class="headerlink" title="1.建立连接"></a>1.建立连接</h4><p><strong>举例</strong>：假如我正在使用kali机器做渗透测试，探测到目标的地址是</p>
+<p>开启了22端口，并且是SSH服务，还知道了目标机器上的用户名为Tom，密码为123456，就可以用SSH远程登录到目标机器，指令如下</p>
+<pre><code class="null">ssh tom@172.21.70.110 -p 22
+</code></pre>
+<p><strong>注</strong>：这里的-p 22也可以不要，因为-p 22是默认选项，如果是其他端口的ssh服务就需要用-p来指定其他的端口了</p>
+<h4 id="2-输入密码"><a href="#2-输入密码" class="headerlink" title="2.输入密码"></a>2.输入密码</h4><p>输入上面的指令后页面如下，提示输入密码，这里密码的输入是隐藏输入（并不会显示），输入密码后直接回车就好 </p>
+<p><img src="/2023/11/04/SSH%E4%B8%A4%E7%A7%8D%E8%BF%9C%E7%A8%8B%E7%99%BB%E5%BD%95%E6%96%B9%E5%BC%8F%E5%8F%8A%E5%8E%9F%E7%90%86%E5%89%96%E6%9E%90/e81774a888814d1a81bd6acfc6949b69.png"></p>
+<blockquote>
+<p>因为我已经连接过很多次了，但是第一次连接会弹出来一段话，意思是该远程主机的真实性无法确定，确定想要继续连接吗？ ，直接输入yes即可</p>
+</blockquote>
+<h4 id="3-成功连接"><a href="#3-成功连接" class="headerlink" title="3.成功连接"></a>3.成功连接</h4><p> 输入密码后页面如下图</p>
+<p><img src="/2023/11/04/SSH%E4%B8%A4%E7%A7%8D%E8%BF%9C%E7%A8%8B%E7%99%BB%E5%BD%95%E6%96%B9%E5%BC%8F%E5%8F%8A%E5%8E%9F%E7%90%86%E5%89%96%E6%9E%90/d0af46c56718435283ee4d9c7ca4822e.png"></p>
+<p> 可以看到这里我们成功用SSH远程登录了目标的tom用户，这就是SSH口令登录的大致内容了</p>
+<h3 id="【3】缺点总结"><a href="#【3】缺点总结" class="headerlink" title="【3】缺点总结"></a>【3】缺点总结</h3><h4 id="1-安全性"><a href="#1-安全性" class="headerlink" title="1.安全性"></a>1.安全性</h4><p>整个验证机制是没什么问题的，但是当遇到 **<code>中间人攻击</code>**这种机制的安全性便会遭到破坏，什么是 <code>**中间人攻击**？</code></p>
+<blockquote>
+<ul>
+<li>客户端向服务端发起请求</li>
+<li><strong>攻击人截获请求，并向客户端返回自己的公钥</strong></li>
+<li>客户端用公钥加密登录密码并返回</li>
+<li><strong>攻击人用自己的私钥解密，获得服务器的登录密码</strong></li>
+</ul>
+</blockquote>
+<h4 id="2-繁琐性"><a href="#2-繁琐性" class="headerlink" title="2.繁琐性"></a>2.繁琐性</h4><p>每次登录目标主机都要输入密码，短的密码不安全，长的密码又不好记，用户体验感较差</p>
+<blockquote>
+<p>为了解决上面这几个问题，于是更新，更安全的方法随之而生，那就是SSH秘钥登录，下面我们来看看</p>
+</blockquote>
+<h2 id="二：SSH秘钥登录"><a href="#二：SSH秘钥登录" class="headerlink" title="二：SSH秘钥登录"></a>二：SSH秘钥登录</h2><h3 id="【1】登录原理-1"><a href="#【1】登录原理-1" class="headerlink" title="【1】登录原理"></a>【1】登录原理</h3><p>很多人可能都听过秘钥登录，知道它可以通过SSH在<strong>无需密码</strong>的情况下登录目标机器上的用户，那这个流程是怎样的呢？我们来详细看看 </p>
+<blockquote>
+<ul>
+<li>1.客户端<strong>自己生成</strong>密钥对，事先将<strong>公钥上传存储</strong>到远程服务器上，私钥<strong>自己保管</strong></li>
+<li>2.客户端发起登录请求</li>
+<li>3.服务器生成一串<strong>随机字符串，</strong>并用<strong>公钥加密</strong>，加密后的结果发给客户端</li>
+<li>4.客户端用自己的<strong>私钥解密</strong>随机字符串，返回给服务端</li>
+<li>5.服务端将<strong>收到的随机字符串</strong>与事先<strong>生成的随机字符串</strong>比对，正确则允许登录</li>
+</ul>
+</blockquote>
+<p> 可以看到整个流程存在五个步骤 ，下面给大家看看<strong>详细步骤</strong> </p>
+<h3 id="【2】使用教程-1"><a href="#【2】使用教程-1" class="headerlink" title="【2】使用教程"></a>【2】使用教程</h3><h4 id="1-生成密钥对"><a href="#1-生成密钥对" class="headerlink" title="1.生成密钥对"></a>1.生成密钥对</h4><pre><code class="null">ssh-keygen -t rsa   #-t表示类型选项，这里采用rsa加密算法
+</code></pre>
+<p>然后根据提示一步步的按回车键即可（总共三个），页面如下</p>
+<p><img src="/2023/11/04/SSH%E4%B8%A4%E7%A7%8D%E8%BF%9C%E7%A8%8B%E7%99%BB%E5%BD%95%E6%96%B9%E5%BC%8F%E5%8F%8A%E5%8E%9F%E7%90%86%E5%89%96%E6%9E%90/0307fc888524478bb81aac4fdc5db915.png"></p>
+<p>这里为什么连续按三个回车就可以了呢，我们来看看这三个回车对应了什么 </p>
+<blockquote>
+<p><strong>第一个回车</strong>：让我们输入一个目录路径来保存生成的密钥对，默认为**&#x2F;root&#x2F;.ssh<strong>，回车                                 代表</strong>直接默认**，也可以自己输入一个路径来保存 </p>
+<p><strong>第二个回车</strong>：让我们设置私钥密码，如果设置了私钥密码，每次使用 SSH 进行操作都需要                          输入私钥密码。这里直接空格就是密码为空，这样每次使用就不需要输入密码</p>
+<p><strong>第三个回车：</strong> 这个就是单纯的再次输入私钥密码（就是一个确认密码），我们本来就是没想                       设置密码，所以还是直接回车即可</p>
+</blockquote>
+<p>像我上面那样的话<strong>密钥对</strong>就已经生成了，我们到自己设置的<strong>秘钥对</strong>路径下看看，如果没有设置路径的话就是默认路径**&#x2F;root&#x2F;.ssh**，查询结果如下</p>
+<p> <img src="/2023/11/04/SSH%E4%B8%A4%E7%A7%8D%E8%BF%9C%E7%A8%8B%E7%99%BB%E5%BD%95%E6%96%B9%E5%BC%8F%E5%8F%8A%E5%8E%9F%E7%90%86%E5%89%96%E6%9E%90/78466f2ff0724b8e94cb5243da0b5536.png"></p>
+<p> 可以看到在&#x2F;root&#x2F;.ssh路径下生成了密钥对（即公钥和私钥），其中<strong>id_rsa文件</strong>就是<strong>私钥</strong>，<strong>id_rsa.pub文件</strong>就是<strong>公钥</strong></p>
+<h4 id="2-投递公钥到服务端"><a href="#2-投递公钥到服务端" class="headerlink" title="2.投递公钥到服务端"></a>2.投递公钥到服务端</h4><p> 上面我们已经生成了密钥对，按照步骤需要将<strong>密钥对中的公钥</strong>保存到目标机器的**~<strong>&#x2F;.ssh&#x2F;authorized_key文件中，这里给大家介绍</strong>三种<strong>投递方式，但都是基于目标</strong>开启了ssh服务<strong>和</strong>知道目标账密**的前提下</p>
+<blockquote>
+<p>注意：~ 表示代码主目录，也就是我们想用SSH登录的用户目录。 </p>
+</blockquote>
+<p><strong>第一种:</strong></p>
+<p>这是最简单也是<strong>最常用</strong>的方式，需要<strong>ssh-copy-id</strong>，但是一般linux都自带这个</p>
+<pre><code class="null">ssh-copy-id user@remote -p port
+</code></pre>
+<ul>
+<li>user 是你在远程机器上的<strong>用户名</strong>，如果不指定的话默认为当前用户</li>
+<li>remote 是远程机器的<strong>地址</strong>，可以是 IP，域名，或者是后面会提到的别名</li>
+<li>port 是 SSH Server 监听的<strong>端口</strong>，如果不指定的话就为默认值 22（ssh的默认端口）</li>
+</ul>
+<p><strong>实例</strong>： 这里我直接把上面生成的<strong>密钥对中的公钥</strong>上传到目标机器的<strong>tom用户目录</strong>下</p>
+<p><img src="/2023/11/04/SSH%E4%B8%A4%E7%A7%8D%E8%BF%9C%E7%A8%8B%E7%99%BB%E5%BD%95%E6%96%B9%E5%BC%8F%E5%8F%8A%E5%8E%9F%E7%90%86%E5%89%96%E6%9E%90/21755392d777404da33f6eb6479af988.png"></p>
+<p> 可以看到在这里已经成功上传了，因为这是我们自己搭建的环境，我们也可以去目标机器看看**~&#x2F;.ssh<strong>上有没有我们上传的公钥文件，也就是</strong>authorized_keys<strong>文件（上传后会经过</strong>重命名**）</p>
+<p><img src="/2023/11/04/SSH%E4%B8%A4%E7%A7%8D%E8%BF%9C%E7%A8%8B%E7%99%BB%E5%BD%95%E6%96%B9%E5%BC%8F%E5%8F%8A%E5%8E%9F%E7%90%86%E5%89%96%E6%9E%90/1e8f5fb59c1a4201b43bddc6b517cd79.png"><br> 可以看到目标路径下已经有了，现在我们再用kali来登录试试</p>
+<p><img src="/2023/11/04/SSH%E4%B8%A4%E7%A7%8D%E8%BF%9C%E7%A8%8B%E7%99%BB%E5%BD%95%E6%96%B9%E5%BC%8F%E5%8F%8A%E5%8E%9F%E7%90%86%E5%89%96%E6%9E%90/f39122939df54e97904ccfd4d6afb050.png"></p>
+<p> 可以看到已经成功登录了，而且并没有提示我们输入密码</p>
+<p><strong>第二种：</strong> </p>
+<p>在<strong>没有 ssh-copy-id</strong> 的情况下（比如在 Windows 上），也是可以轻松做到这件事的。用命令的话也是一句话搞定 </p>
+<pre><code class="null">ssh user@remote -p port &#39;mkdir -p .ssh &amp;&amp; cat &gt;&gt; .ssh/authorized_keys&#39; &lt; ~/.ssh/id_rsa.pub
+</code></pre>
+<p> 这句话的意思是，在远端执行新建 .ssh 文件夹，并把本地的 ~&#x2F;.ssh&#x2F;id_rsa.pub （也就是公钥）复制为远端的 <strong>.ssh&#x2F;authorized_keys文件</strong>，因为windows用得少，这里就不实操举例了，有兴趣的同学可以试试</p>
+<p><strong>第三种：</strong> </p>
+<p> 咳咳，这个其实也不算方法，就是两台电脑均可控的情况下，手动把本地的 <strong>~&#x2F;.ssh&#x2F;id_rsa.pub</strong>复制到目标机器的~&#x2F;<strong>.ssh&#x2F;authorized_keys文件</strong>中</p>
+<h2 id="三：SSH最简单登录方法——别名配置"><a href="#三：SSH最简单登录方法——别名配置" class="headerlink" title="三：SSH最简单登录方法——别名配置"></a>三：SSH最简单登录方法——别名配置</h2><p>每次都输入 <strong>ssh user@remote -p port</strong>，时间久了也会觉得很麻烦（不要觉得我懒哈哈），特别是当 <strong>user</strong>, <strong>remote</strong> 和 <strong>port</strong> 都得输入，而且还不好记忆的时候。配置别名可以让我们<strong>进一步偷懒</strong>（咳咳）。</p>
+<p>比如我想用 <strong>ssh  host1</strong>来替代上面这么一长串，那么在 <strong>~&#x2F;.ssh&#x2F;config</strong>文件里面追加以下内容： </p>
+<pre><code class="null">Host host1    HostName remote    User user    Port port
+</code></pre>
+<p><strong>举例：</strong>  先在本地的**~&#x2F;.ssh<strong>里面创建一个名为</strong>config**的文件，里面代码如下：</p>
+<p><img src="/2023/11/04/SSH%E4%B8%A4%E7%A7%8D%E8%BF%9C%E7%A8%8B%E7%99%BB%E5%BD%95%E6%96%B9%E5%BC%8F%E5%8F%8A%E5%8E%9F%E7%90%86%E5%89%96%E6%9E%90/1a9861ce30834f26aa786dd18e32bf20.png"></p>
+<p> 现在我们就可以尝试使用<strong>ssh host1</strong>来登录了，如下</p>
+<p><img src="/2023/11/04/SSH%E4%B8%A4%E7%A7%8D%E8%BF%9C%E7%A8%8B%E7%99%BB%E5%BD%95%E6%96%B9%E5%BC%8F%E5%8F%8A%E5%8E%9F%E7%90%86%E5%89%96%E6%9E%90/4ec6c8b28f4f4242a878cb0030a470e0.png"></p>
+<blockquote>
+<p>可以看到，也能成功登录，并且与刚才配置的<strong>秘钥登录</strong>配合，不用输入密码，目标信息不用记，我说这是ssh<strong>最简单</strong>的登录方法没问题吧。</p>
+</blockquote>
+<p><strong>注意</strong>：这个别名并不是必须配置公钥登录，这里如果没有配置秘钥登录也可以使用别名，只是登    录时需要输入密码而已</p>
+<hr>
+<blockquote>
+<p>  好了今天的SSH使用技巧分享就到这里了，如果有什么疑问或者想讨论的都可以私信我或者发布评论，看到都会回哦（如果有什么网安方面的小问题也可以来讨论讨论），最后，希望今天的内容能对大家有所帮助，感谢大家的阅读，再见啦!</p>
+</blockquote>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="http://example.com">庆尘</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="http://example.com/2023/11/04/SSH%E4%B8%A4%E7%A7%8D%E8%BF%9C%E7%A8%8B%E7%99%BB%E5%BD%95%E6%96%B9%E5%BC%8F%E5%8F%8A%E5%8E%9F%E7%90%86%E5%89%96%E6%9E%90/">http://example.com/2023/11/04/SSH%E4%B8%A4%E7%A7%8D%E8%BF%9C%E7%A8%8B%E7%99%BB%E5%BD%95%E6%96%B9%E5%BC%8F%E5%8F%8A%E5%8E%9F%E7%90%86%E5%89%96%E6%9E%90/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://example.com" target="_blank">Daydust's Blog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Web%E5%AE%89%E5%85%A8/">Web安全</a><a class="post-meta__tags" href="/tags/SSH%E5%AF%86%E9%92%A5/">SSH密钥</a></div><div class="post_share"><div class="social-share" data-image="/img/avater.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2023/11/23/%E4%BD%BF%E7%94%A8frps%E5%92%8Cfrpc%E8%BF%9B%E8%A1%8C%E5%86%85%E7%BD%91%E7%A9%BF%E9%80%8F/" title="使用frps和frpc进行内网穿透"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">使用frps和frpc进行内网穿透</div></div></a></div><div class="next-post pull-right"><a href="/2023/11/04/%E9%AA%8C%E8%AF%81%E7%A0%81%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98%E6%96%B9%E5%BC%8F(%E4%B8%8B)-%E5%9B%BE%E5%83%8F%E9%AA%8C%E8%AF%81%E7%A0%81/" title="验证码漏洞挖掘方式-下-图像验证码"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">验证码漏洞挖掘方式-下-图像验证码</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2023/11/04/%E5%A4%A7%E5%9E%8BWeb%E8%B5%84%E4%BA%A7%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86/" title="大型Web资产信息收集"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-11-04</div><div class="title">大型Web资产信息收集</div></div></a></div><div><a href="/2023/11/03/%E5%AF%B9SQL%E6%B3%A8%E5%85%A5%E6%BC%8F%E6%B4%9E%E5%8E%9F%E7%90%86%E7%9A%84%E6%80%9D%E8%80%83/" title="对SQL注入漏洞原理的思考"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-11-03</div><div class="title">对SQL注入漏洞原理的思考</div></div></a></div><div><a href="/2023/11/04/%E9%AA%8C%E8%AF%81%E7%A0%81%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98%E6%96%B9%E5%BC%8F(%E4%B8%8B)-%E5%9B%BE%E5%83%8F%E9%AA%8C%E8%AF%81%E7%A0%81/" title="验证码漏洞挖掘方式-下-图像验证码"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-11-04</div><div class="title">验证码漏洞挖掘方式-下-图像验证码</div></div></a></div><div><a href="/2023/11/04/%E9%AA%8C%E8%AF%81%E7%A0%81%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98%E6%96%B9%E5%BC%8F(%E4%B8%8A)-%E7%9F%AD%E4%BF%A1%E9%AA%8C%E8%AF%81%E7%A0%81/" title="验证码漏洞挖掘方式(上)-短信验证码"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-11-04</div><div class="title">验证码漏洞挖掘方式(上)-短信验证码</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/avater.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">庆尘</div><div class="author-info__description">有些人说看不到未来,其实是看到了未来</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">9</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">9</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/daydust" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="https://blog.csdn.net/qq_63844103?type=blog" target="_blank" title="CSDN"><i class="fa fa-book-open"></i></a><a class="social-icon" href="mailto:1597128781@qq.com" target="_blank" title="Email"><i class="fas fa-envelope-open-text"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">不要让时代的悲哀，成为你的悲哀</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content is-expand"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%EF%BC%9ASSH%E5%8F%A3%E4%BB%A4%E7%99%BB%E5%BD%95"><span class="toc-text">一：SSH口令登录</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E3%80%901%E3%80%91%E7%99%BB%E5%BD%95%E5%8E%9F%E7%90%86"><span class="toc-text">【1】登录原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E3%80%902%E3%80%91%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B"><span class="toc-text">【2】使用教程</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-%E5%BB%BA%E7%AB%8B%E8%BF%9E%E6%8E%A5"><span class="toc-text">1.建立连接</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-%E8%BE%93%E5%85%A5%E5%AF%86%E7%A0%81"><span class="toc-text">2.输入密码</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-%E6%88%90%E5%8A%9F%E8%BF%9E%E6%8E%A5"><span class="toc-text">3.成功连接</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E3%80%903%E3%80%91%E7%BC%BA%E7%82%B9%E6%80%BB%E7%BB%93"><span class="toc-text">【3】缺点总结</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-%E5%AE%89%E5%85%A8%E6%80%A7"><span class="toc-text">1.安全性</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-%E7%B9%81%E7%90%90%E6%80%A7"><span class="toc-text">2.繁琐性</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%EF%BC%9ASSH%E7%A7%98%E9%92%A5%E7%99%BB%E5%BD%95"><span class="toc-text">二：SSH秘钥登录</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E3%80%901%E3%80%91%E7%99%BB%E5%BD%95%E5%8E%9F%E7%90%86-1"><span class="toc-text">【1】登录原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E3%80%902%E3%80%91%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B-1"><span class="toc-text">【2】使用教程</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-%E7%94%9F%E6%88%90%E5%AF%86%E9%92%A5%E5%AF%B9"><span class="toc-text">1.生成密钥对</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-%E6%8A%95%E9%80%92%E5%85%AC%E9%92%A5%E5%88%B0%E6%9C%8D%E5%8A%A1%E7%AB%AF"><span class="toc-text">2.投递公钥到服务端</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%EF%BC%9ASSH%E6%9C%80%E7%AE%80%E5%8D%95%E7%99%BB%E5%BD%95%E6%96%B9%E6%B3%95%E2%80%94%E2%80%94%E5%88%AB%E5%90%8D%E9%85%8D%E7%BD%AE"><span class="toc-text">三：SSH最简单登录方法——别名配置</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/12/03/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94RBAC%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/" title="代码审计—RBAC权限管理系统">代码审计—RBAC权限管理系统</a><time datetime="2023-12-03T11:08:28.000Z" title="发表于 2023-12-03 19:08:28">2023-12-03</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/11/30/Spring-security-RegexRequestMatcher%E8%AE%A4%E8%AF%81%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E/" title="Spring-security RegexRequestMatcher认证绕过漏洞">Spring-security RegexRequestMatcher认证绕过漏洞</a><time datetime="2023-11-30T02:24:20.000Z" title="发表于 2023-11-30 10:24:20">2023-11-30</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/11/23/%E4%BD%BF%E7%94%A8frps%E5%92%8Cfrpc%E8%BF%9B%E8%A1%8C%E5%86%85%E7%BD%91%E7%A9%BF%E9%80%8F/" title="使用frps和frpc进行内网穿透">使用frps和frpc进行内网穿透</a><time datetime="2023-11-23T04:00:42.000Z" title="发表于 2023-11-23 12:00:42">2023-11-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/11/04/SSH%E4%B8%A4%E7%A7%8D%E8%BF%9C%E7%A8%8B%E7%99%BB%E5%BD%95%E6%96%B9%E5%BC%8F%E5%8F%8A%E5%8E%9F%E7%90%86%E5%89%96%E6%9E%90/" title="SSH两种远程登录方式及原理剖析">SSH两种远程登录方式及原理剖析</a><time datetime="2023-11-04T03:12:54.000Z" title="发表于 2023-11-04 11:12:54">2023-11-04</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/11/04/%E9%AA%8C%E8%AF%81%E7%A0%81%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98%E6%96%B9%E5%BC%8F(%E4%B8%8B)-%E5%9B%BE%E5%83%8F%E9%AA%8C%E8%AF%81%E7%A0%81/" title="验证码漏洞挖掘方式-下-图像验证码">验证码漏洞挖掘方式-下-图像验证码</a><time datetime="2023-11-04T02:41:59.000Z" title="发表于 2023-11-04 10:41:59">2023-11-04</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2023 By 庆尘</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>

