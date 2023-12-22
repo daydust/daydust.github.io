@@ -94,7 +94,7 @@
       
       <categories>
           
-          <category> 代码审计 </category>
+          <category> 漏洞复现 </category>
           
       </categories>
       
@@ -265,9 +265,9 @@
       
         <tags>
             
-            <tag> Web安全 </tag>
-            
             <tag> 代码审计 </tag>
+            
+            <tag> Web安全 </tag>
             
         </tags>
       
@@ -285,7 +285,7 @@
       
       <categories>
           
-          <category> 追洞计划 </category>
+          <category> 漏洞复现 </category>
           
       </categories>
       
