@@ -173,7 +173,7 @@
       
       <categories>
           
-          <category> 漏洞挖掘 </category>
+          <category> SRC挖掘 </category>
           
       </categories>
       
@@ -202,7 +202,7 @@
       
       <categories>
           
-          <category> 漏洞挖掘 </category>
+          <category> SRC挖掘 </category>
           
       </categories>
       
@@ -265,9 +265,9 @@
       
         <tags>
             
-            <tag> 代码审计 </tag>
-            
             <tag> Web安全 </tag>
+            
+            <tag> 代码审计 </tag>
             
         </tags>
       
