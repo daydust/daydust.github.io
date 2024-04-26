@@ -1,0 +1,311 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>判断PHP中的变量覆盖漏洞 | Daydust's Blog</title><meta name="author" content="庆尘"><meta name="copyright" content="庆尘"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="PHP中变量覆盖是怎样的？有哪些函数或方法可能导致变量覆盖？让我们从常见的变量覆盖类型开始，配合代码进行分析。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="判断PHP中的变量覆盖漏洞">
+<meta property="og:url" content="http://example.com/2024/04/26/%E7%9B%98%E7%82%B9PHP%E4%B8%AD%E7%9A%84%E5%8F%98%E9%87%8F%E8%A6%86%E7%9B%96%E6%BC%8F%E6%B4%9E/index.html">
+<meta property="og:site_name" content="Daydust&#39;s Blog">
+<meta property="og:description" content="PHP中变量覆盖是怎样的？有哪些函数或方法可能导致变量覆盖？让我们从常见的变量覆盖类型开始，配合代码进行分析。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/avater.jpg">
+<meta property="article:published_time" content="2024-04-26T15:43:14.000Z">
+<meta property="article:modified_time" content="2024-04-26T15:48:45.795Z">
+<meta property="article:author" content="庆尘">
+<meta property="article:tag" content="代码审计">
+<meta property="article:tag" content="Web安全">
+<meta property="article:tag" content="PHP">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/avater.jpg"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://example.com/2024/04/26/%E7%9B%98%E7%82%B9PHP%E4%B8%AD%E7%9A%84%E5%8F%98%E9%87%8F%E8%A6%86%E7%9B%96%E6%BC%8F%E6%B4%9E/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: undefined,
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '判断PHP中的变量覆盖漏洞',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2024-04-26 23:48:45'
+}</script><script>(win=>{
+      win.saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+    
+      win.getScript = (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        script.onerror = reject
+        script.onload = script.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          script.onload = script.onreadystatechange = null
+          resolve()
+        }
+
+        Object.keys(attr).forEach(key => {
+          script.setAttribute(key, attr[key])
+        })
+
+        document.head.appendChild(script)
+      })
+    
+      win.getCSS = (url, id = false) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onerror = reject
+        link.onload = link.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          link.onload = link.onreadystatechange = null
+          resolve()
+        }
+        document.head.appendChild(link)
+      })
+    
+      win.activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+        if (t === 'dark') activateDarkMode()
+        else if (t === 'light') activateLightMode()
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })(window)</script><meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/atom.xml" title="Daydust's Blog" type="application/atom+xml">
+</head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/avater.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">13</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">12</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a href="/" title="Daydust's Blog"><span class="site-name">Daydust's Blog</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">判断PHP中的变量覆盖漏洞</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-04-26T15:43:14.000Z" title="发表于 2024-04-26 23:43:14">2024-04-26</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-04-26T15:48:45.795Z" title="更新于 2024-04-26 23:48:45">2024-04-26</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">代码审计</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">1.5k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>6分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="判断PHP中的变量覆盖漏洞"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="一、-动态变量"><a href="#一、-动态变量" class="headerlink" title="一、$$动态变量"></a>一、$$动态变量</h1><h2 id="1、基本语法"><a href="#1、基本语法" class="headerlink" title="1、基本语法"></a>1、基本语法</h2><p>PHP动态变量是指一个变量名的变量名可以动态的设置和使用，一个变量获取另一个变量的值作为这个变量的变量名。</p>
+<p>例如下面</p>
+<pre><code class="php">$Hello = &quot;World&quot;;
+$a = &quot;Hello&quot;;
+
+echo $a; //hello
+echo $$a; //World
+
+# $a=&quot;hello&quot;，所以$$a=$hello=world
+</code></pre>
+<p>所以运行之后结果则为HelloWorld，其实就类似于C语言的指针</p>
+<h2 id="2、漏洞案例"><a href="#2、漏洞案例" class="headerlink" title="2、漏洞案例"></a>2、漏洞案例</h2><pre><code class="php">$a = &quot;ping 127.0.0.1&quot;;
+$b = $_GET[&#39;1&#39;];
+$$b = $_GET[&#39;2&#39;];
+system($a);
+</code></pre>
+<p>分析题目，由于system函数执行的是$a，但现在$a的值是”ping 127.0.0.1”，所以我们需要想办法覆盖$a的值为我们指定的命令，这样才能造成命令执行漏洞,答案如下</p>
+<pre><code class="http">?1=a&amp;2=whoami
+</code></pre>
+<p>这样传参了之后就变为</p>
+<pre><code class="php">$b = a
+$$b = $a = $_GET[&#39;2&#39;] = 我们传入的whoami
+</code></pre>
+<p>从而利用变量覆盖漏洞让system函数执行任何我们传入的语句，也就是命令执行漏洞</p>
+<h1 id="二、extract"><a href="#二、extract" class="headerlink" title="二、extract()"></a>二、extract()</h1><h2 id="1、基本语法-1"><a href="#1、基本语法-1" class="headerlink" title="1、基本语法"></a>1、基本语法</h2><p>PHP extract()函数用于将数组中的变量导入到当前的符号表中。 它需要一个关联数组数组，并将键作为变量名和值作为变量值。</p>
+<p>例如下面</p>
+<pre><code class="php">&lt;?php
+extract($_GET);  
+echo$name.&#39;&lt;br&gt;&#39;;
+echo$age.&#39;&lt;br&gt;&#39;;
+echo$id.&#39;&lt;br&gt;&#39;;
+?&gt;
+</code></pre>
+<p>当以GET方式传入?name&#x3D;tacoking&amp;age&#x3D;21&amp;id&#x3D;123456时，输出的结果就是$name&#x3D;tacoking；$age&#x3D;22；$id&#x3D;123456</p>
+<p>也就是name、age、id作为变量名，传进来的值作为了它们的变量值</p>
+<h2 id="2、漏洞案例-1"><a href="#2、漏洞案例-1" class="headerlink" title="2、漏洞案例"></a>2、漏洞案例</h2><pre><code class="php">$a = &#39;ping 127.0.0.1&#39;;
+$arr1 = [$_GET[&#39;1&#39;] =&gt; $_GET[&#39;2&#39;],&#39;b&#39;=&gt;2];
+extract($arr1);
+system($a);
+</code></pre>
+<p>同理，我们也是需要想法设法覆盖掉$a的值，可以看到这里$_GET[‘1’]和$_GET[‘2’]的值作为键值对会被引入符号表，所以我们只需要进行如下传参</p>
+<pre><code class="http">?1=a&amp;2=whoami
+</code></pre>
+<p>这样就可以得到$a&#x3D;whoami，从而覆盖掉$a原来的参数值，也就是变量覆盖漏洞</p>
+<h1 id="三、list"><a href="#三、list" class="headerlink" title="三、list()"></a>三、list()</h1><h2 id="1、基本语法-2"><a href="#1、基本语法-2" class="headerlink" title="1、基本语法"></a>1、基本语法</h2><p>list() 函数用于将数组中的值赋给一组变量</p>
+<pre><code class="php">$info = [&#39;John&#39;, &#39;Doe&#39;, 30];
+list($firstName, $lastName, $age) = $info;
+
+echo $firstName; // 输出 &quot;John&quot;
+echo $lastName; // 输出 &quot;Doe&quot;
+echo $age; // 输出 30
+</code></pre>
+<h2 id="2、漏洞案例-2"><a href="#2、漏洞案例-2" class="headerlink" title="2、漏洞案例"></a>2、漏洞案例</h2><pre><code class="php">$a = &#39;ping 127.0.0.1&#39;;
+$arr2 = array($_GET[&#39;1&#39;],2);
+list($a ,$b) = $arr2;
+system($a);
+</code></pre>
+<p>这里的意思也就时$a的值会等于$_GET[‘1’]，所以此处我们直接传入$a的值为我们的payload就可以了，传参如下</p>
+<pre><code class="http">?1=whoami
+</code></pre>
+<h1 id="四、parse-str"><a href="#四、parse-str" class="headerlink" title="四、parse_str()"></a>四、parse_str()</h1><h2 id="1、基本语法-3"><a href="#1、基本语法-3" class="headerlink" title="1、基本语法"></a>1、基本语法</h2><p>parse_str() 函数用于解析 URL 查询字符串，并将其中的参数赋值给相应的变量</p>
+<pre><code class="php">$queryString = &#39;name=John&amp;age=30&#39;;
+2 parse_str($queryString, $params);
+3
+4 echo $params[&#39;name&#39;]; // 输出 &quot;John&quot;
+5 echo $params[&#39;age&#39;]; // 输出 &quot;30&quot;
+</code></pre>
+<h2 id="2、漏洞案例-3"><a href="#2、漏洞案例-3" class="headerlink" title="2、漏洞案例"></a>2、漏洞案例</h2><p>示例代码，下面附上一段存在变量覆盖导致RCE的漏洞代码案例</p>
+<pre><code class="php">$queryString = $_SERVER[&#39;QUERY_STRING&#39;];
+# 用于获取查询字符串，例如&#39;a=170&amp;b=241&#39;
+$com = array(&#39;cmd&#39;=&gt;&#39;ping 127.0.0.1&#39;);
+# parse_str(str,array)
+# str:要解析的查询字符串
+# array:存储的数组位置（可选，如果不填就解析为单独的变量，填了就作为键值队存储到该数组中）
+parse_str($queryString,$$_GET[1]);
+echo $com[&#39;cmd&#39;];
+system($com[&#39;cmd&#39;]);
+</code></pre>
+<p>payload传参如下</p>
+<pre><code class="http">?cmd=whoami&amp;1=com
+</code></pre>
+<p>那这里的parse_str就变为了下面这样</p>
+<pre><code class="php">parse_str(&quot;cmd=whoami&amp;1=com&quot;,$com);
+</code></pre>
+<p>所以此时$com[‘cmd’]的值就为whoami，自然也就造成了变量覆盖的任意命令执行</p>
+<h1 id="五、mb-parse-str"><a href="#五、mb-parse-str" class="headerlink" title="五、mb_parse_str()"></a>五、mb_parse_str()</h1><p>**mb_parse_str()**PHP 中的函数用于解析 GET、POST 和 COOKIE 数据并设置全局变量。它解析 URL 编码的数据并检测编码。之后，它转换内部编码中的编码并设置全局变量的值。PHP 7 或更高版本支持此功能。</p>
+<pre><code class="php">$str = &#39;email=49b1@0ms5vj6.site&amp;city=shanghai&amp;job=diger&#39;;
+mb_parse_str($str, $result);
+print_r($result);
+
+//结果
+Array
+(
+    [email] =&gt; 49b1@0ms5vj6.site
+    [city] =&gt; shanghai
+    [job] =&gt; diger
+)
+</code></pre>
+<p>mb_parse_str()函数和parse_str()类似，所以不再做累赘，感兴趣的可自行研究。</p>
+<h1 id="六、compact"><a href="#六、compact" class="headerlink" title="六、compact()"></a>六、compact()</h1><h2 id="1、基本语法-4"><a href="#1、基本语法-4" class="headerlink" title="1、基本语法"></a>1、基本语法</h2><p>compact() 函数用于将多个变量转换为关联数组，其中变量名将成为数组的键，变量的值将成为数组的值</p>
+<pre><code class="php">$firstName = &#39;John&#39;;
+$lastName = &#39;Doe&#39;;
+$age = 30;
+
+$info = compact(&#39;firstName&#39;, &#39;lastName&#39;, &#39;age&#39;);
+print_r($info);
+</code></pre>
+<h2 id="2、漏洞案例-4"><a href="#2、漏洞案例-4" class="headerlink" title="2、漏洞案例"></a>2、漏洞案例</h2><p>示例代码</p>
+<pre><code class="php">$com1 = &#39;ping 127.0.0.1&#39;;
+$cmd2 = &#39;ping 127.0.0.1&#39;;
+$cmd3 = &#39;whoami&#39;;
+$info = compact($_GET[&#39;1&#39;], &#39;cmd2&#39;);
+# [cmd2] = &gt; ping 127.0.0.1
+foreach ($info as $a)&#123;
+    echo system($a);
+&#125;
+</code></pre>
+<p>传参如下</p>
+<pre><code class="php">?1=cmd3
+</code></pre>
+<p>如果外部变量和compact参数可控，就可以利用这种方法进行变量覆盖</p>
+<h1 id="七、register-globals配置"><a href="#七、register-globals配置" class="headerlink" title="七、register_globals配置"></a>七、register_globals配置</h1><p>当register_globals全局变量设置开启时，传递过来的值会被直接注册为全局变量而使用，这会造成全局变量覆盖</p>
+<p><strong>在PHP5.3之前 默认开启 PHP5.3默认关闭  PHP5.6及5.7已经被移除</strong></p>
+<p>例如下列漏洞代码</p>
+<pre><code class="php">&lt;?php
+if ($num)&#123;
+   echo &quot;flag&#123;daylight-04-26&#125;&quot;;
+&#125;
+?&gt; 
+//payload：http://127.0.0.1/test.php?num=1
+</code></pre>
+<p>这样传入的num&#x3D;1就会被注册并使用，导致$num不为空，从而获得flag</p>
+<h1 id="八、import-request-variables"><a href="#八、import-request-variables" class="headerlink" title="八、import_request_variables()"></a>八、import_request_variables()</h1><p><strong>(PHP 4 &gt;&#x3D; 4.1.0, PHP 5 &lt; 5.4.0)</strong></p>
+<p>import_request_variables — 将 GET／POST／Cookie 变量导入到全局作用域中</p>
+<p>将 GET／POST／Cookie 变量导入到全局作用域中。如果禁止了 register_globals，但又想用全局变量，就可以尝试该函数,简单来说就是用于<strong>手动注册传入的变量</strong></p>
+<p>例如下面这个漏洞代码案例</p>
+<pre><code class="plain">&lt;?php
+$num=0;
+//include &#39;flag.php&#39;;
+import_request_variables(&#39;gp&#39;); //导入get和post中变量
+
+if($num==&quot;daylight&quot;)&#123;
+    echo &#39;flag&#123;daylight-2020-3-28&#125;&#39;;
+    // echo $flag.php;
+&#125;else&#123;
+    echo &quot;NO!&quot;;
+&#125;
+?&gt; 
+
+//payload：http://127.0.0.1/test.php?num=daylight
+//flag&#123;daylight-2020-3-28&#125;
+</code></pre>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="http://example.com">庆尘</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="http://example.com/2024/04/26/%E7%9B%98%E7%82%B9PHP%E4%B8%AD%E7%9A%84%E5%8F%98%E9%87%8F%E8%A6%86%E7%9B%96%E6%BC%8F%E6%B4%9E/">http://example.com/2024/04/26/%E7%9B%98%E7%82%B9PHP%E4%B8%AD%E7%9A%84%E5%8F%98%E9%87%8F%E8%A6%86%E7%9B%96%E6%BC%8F%E6%B4%9E/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://example.com" target="_blank">Daydust's Blog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">代码审计</a><a class="post-meta__tags" href="/tags/Web%E5%AE%89%E5%85%A8/">Web安全</a><a class="post-meta__tags" href="/tags/PHP/">PHP</a></div><div class="post_share"><div class="social-share" data-image="/img/avater.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2024/02/24/%E8%99%9A%E6%8B%9F%E5%8F%B7%E7%A0%81%E5%9C%BA%E6%99%AF%E4%B8%8B%E7%9A%84%E9%80%BB%E8%BE%91%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98/" title="虚拟号码场景下的逻辑漏洞挖掘"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">虚拟号码场景下的逻辑漏洞挖掘</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2023/11/03/%E5%AF%B9SQL%E6%B3%A8%E5%85%A5%E6%BC%8F%E6%B4%9E%E5%8E%9F%E7%90%86%E7%9A%84%E6%80%9D%E8%80%83/" title="对SQL注入漏洞原理的思考"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-11-03</div><div class="title">对SQL注入漏洞原理的思考</div></div></a></div><div><a href="/2023/12/10/JTopCMS%E5%AE%A1%E8%AE%A1%E4%B9%8B%E7%9B%AE%E5%BD%95%E7%A9%BF%E8%B6%8A%E6%BC%8F%E6%B4%9E/" title="JTopCMS审计之目录穿越漏洞"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-12-10</div><div class="title">JTopCMS审计之目录穿越漏洞</div></div></a></div><div><a href="/2023/12/03/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94RBAC%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/" title="代码审计—RBAC权限管理系统"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-12-03</div><div class="title">代码审计—RBAC权限管理系统</div></div></a></div><div><a href="/2023/11/30/Spring-security-RegexRequestMatcher%E8%AE%A4%E8%AF%81%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E/" title="Spring-security RegexRequestMatcher认证绕过漏洞"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-11-30</div><div class="title">Spring-security RegexRequestMatcher认证绕过漏洞</div></div></a></div><div><a href="/2023/12/21/%E5%AE%A1%E8%AE%A1SQL%E6%B3%A8%E5%85%A5%E6%97%B6%E7%9A%84%E5%B0%8Ftips/" title="审计SQL注入时的小tips"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-12-21</div><div class="title">审计SQL注入时的小tips</div></div></a></div><div><a href="/2023/11/04/SSH%E4%B8%A4%E7%A7%8D%E8%BF%9C%E7%A8%8B%E7%99%BB%E5%BD%95%E6%96%B9%E5%BC%8F%E5%8F%8A%E5%8E%9F%E7%90%86%E5%89%96%E6%9E%90/" title="SSH两种远程登录方式及原理剖析"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-11-04</div><div class="title">SSH两种远程登录方式及原理剖析</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/avater.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">庆尘</div><div class="author-info__description">有些人说看不到未来,其实是看到了未来</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">13</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">12</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/daydust"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/daydust" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="https://blog.csdn.net/qq_63844103?type=blog" target="_blank" title="CSDN"><i class="fa fa-book-open"></i></a><a class="social-icon" href="mailto:1597128781@qq.com" target="_blank" title="Email"><i class="fas fa-envelope-open-text"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">不要让时代的悲哀，成为你的悲哀</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content is-expand"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%E3%80%81-%E5%8A%A8%E6%80%81%E5%8F%98%E9%87%8F"><span class="toc-text">一、$$动态变量</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1%E3%80%81%E5%9F%BA%E6%9C%AC%E8%AF%AD%E6%B3%95"><span class="toc-text">1、基本语法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2%E3%80%81%E6%BC%8F%E6%B4%9E%E6%A1%88%E4%BE%8B"><span class="toc-text">2、漏洞案例</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%E3%80%81extract"><span class="toc-text">二、extract()</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1%E3%80%81%E5%9F%BA%E6%9C%AC%E8%AF%AD%E6%B3%95-1"><span class="toc-text">1、基本语法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2%E3%80%81%E6%BC%8F%E6%B4%9E%E6%A1%88%E4%BE%8B-1"><span class="toc-text">2、漏洞案例</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%89%E3%80%81list"><span class="toc-text">三、list()</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1%E3%80%81%E5%9F%BA%E6%9C%AC%E8%AF%AD%E6%B3%95-2"><span class="toc-text">1、基本语法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2%E3%80%81%E6%BC%8F%E6%B4%9E%E6%A1%88%E4%BE%8B-2"><span class="toc-text">2、漏洞案例</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%9B%9B%E3%80%81parse-str"><span class="toc-text">四、parse_str()</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1%E3%80%81%E5%9F%BA%E6%9C%AC%E8%AF%AD%E6%B3%95-3"><span class="toc-text">1、基本语法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2%E3%80%81%E6%BC%8F%E6%B4%9E%E6%A1%88%E4%BE%8B-3"><span class="toc-text">2、漏洞案例</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%94%E3%80%81mb-parse-str"><span class="toc-text">五、mb_parse_str()</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%85%AD%E3%80%81compact"><span class="toc-text">六、compact()</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1%E3%80%81%E5%9F%BA%E6%9C%AC%E8%AF%AD%E6%B3%95-4"><span class="toc-text">1、基本语法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2%E3%80%81%E6%BC%8F%E6%B4%9E%E6%A1%88%E4%BE%8B-4"><span class="toc-text">2、漏洞案例</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%83%E3%80%81register-globals%E9%85%8D%E7%BD%AE"><span class="toc-text">七、register_globals配置</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%85%AB%E3%80%81import-request-variables"><span class="toc-text">八、import_request_variables()</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/04/26/%E7%9B%98%E7%82%B9PHP%E4%B8%AD%E7%9A%84%E5%8F%98%E9%87%8F%E8%A6%86%E7%9B%96%E6%BC%8F%E6%B4%9E/" title="判断PHP中的变量覆盖漏洞">判断PHP中的变量覆盖漏洞</a><time datetime="2024-04-26T15:43:14.000Z" title="发表于 2024-04-26 23:43:14">2024-04-26</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/02/24/%E8%99%9A%E6%8B%9F%E5%8F%B7%E7%A0%81%E5%9C%BA%E6%99%AF%E4%B8%8B%E7%9A%84%E9%80%BB%E8%BE%91%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98/" title="虚拟号码场景下的逻辑漏洞挖掘">虚拟号码场景下的逻辑漏洞挖掘</a><time datetime="2024-02-24T02:30:53.953Z" title="发表于 2024-02-24 10:30:53">2024-02-24</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/12/21/%E5%AE%A1%E8%AE%A1SQL%E6%B3%A8%E5%85%A5%E6%97%B6%E7%9A%84%E5%B0%8Ftips/" title="审计SQL注入时的小tips">审计SQL注入时的小tips</a><time datetime="2023-12-21T15:57:16.000Z" title="发表于 2023-12-21 23:57:16">2023-12-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/12/10/JTopCMS%E5%AE%A1%E8%AE%A1%E4%B9%8B%E7%9B%AE%E5%BD%95%E7%A9%BF%E8%B6%8A%E6%BC%8F%E6%B4%9E/" title="JTopCMS审计之目录穿越漏洞">JTopCMS审计之目录穿越漏洞</a><time datetime="2023-12-09T16:46:31.000Z" title="发表于 2023-12-10 00:46:31">2023-12-10</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/12/03/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94RBAC%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/" title="代码审计—RBAC权限管理系统">代码审计—RBAC权限管理系统</a><time datetime="2023-12-03T11:08:28.000Z" title="发表于 2023-12-03 19:08:28">2023-12-03</time></div></div></div></div><div class="card-widget ads-wrap"><div class="wechat_channel"><img src ="/img/m_public.png"></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2024 By 庆尘</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>
