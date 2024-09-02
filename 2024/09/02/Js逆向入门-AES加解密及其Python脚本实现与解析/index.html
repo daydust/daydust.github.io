@@ -1,0 +1,417 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Js逆向入门:AES加解密及其Python脚本实现与解析 | Daydust's Blog</title><meta name="author" content="庆尘"><meta name="copyright" content="庆尘"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="系统总结AES的ECB&#x2F;CBC模式加解密及其Python脚本的实现与解析">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Js逆向入门:AES加解密及其Python脚本实现与解析">
+<meta property="og:url" content="http://example.com/2024/09/02/Js%E9%80%86%E5%90%91%E5%85%A5%E9%97%A8-AES%E5%8A%A0%E8%A7%A3%E5%AF%86%E5%8F%8A%E5%85%B6Python%E8%84%9A%E6%9C%AC%E5%AE%9E%E7%8E%B0%E4%B8%8E%E8%A7%A3%E6%9E%90/index.html">
+<meta property="og:site_name" content="Daydust&#39;s Blog">
+<meta property="og:description" content="系统总结AES的ECB&#x2F;CBC模式加解密及其Python脚本的实现与解析">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/avater.jpg">
+<meta property="article:published_time" content="2024-09-02T02:19:54.000Z">
+<meta property="article:modified_time" content="2024-09-02T02:40:28.631Z">
+<meta property="article:author" content="庆尘">
+<meta property="article:tag" content="SRC挖掘">
+<meta property="article:tag" content="Js逆向">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/avater.jpg"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://example.com/2024/09/02/Js%E9%80%86%E5%90%91%E5%85%A5%E9%97%A8-AES%E5%8A%A0%E8%A7%A3%E5%AF%86%E5%8F%8A%E5%85%B6Python%E8%84%9A%E6%9C%AC%E5%AE%9E%E7%8E%B0%E4%B8%8E%E8%A7%A3%E6%9E%90/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: undefined,
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Js逆向入门:AES加解密及其Python脚本实现与解析',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2024-09-02 10:40:28'
+}</script><script>(win=>{
+      win.saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+    
+      win.getScript = (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        script.onerror = reject
+        script.onload = script.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          script.onload = script.onreadystatechange = null
+          resolve()
+        }
+
+        Object.keys(attr).forEach(key => {
+          script.setAttribute(key, attr[key])
+        })
+
+        document.head.appendChild(script)
+      })
+    
+      win.getCSS = (url, id = false) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onerror = reject
+        link.onload = link.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          link.onload = link.onreadystatechange = null
+          resolve()
+        }
+        document.head.appendChild(link)
+      })
+    
+      win.activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+        if (t === 'dark') activateDarkMode()
+        else if (t === 'light') activateLightMode()
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })(window)</script><meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/atom.xml" title="Daydust's Blog" type="application/atom+xml">
+</head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/avater.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">16</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">13</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a href="/" title="Daydust's Blog"><span class="site-name">Daydust's Blog</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">Js逆向入门:AES加解密及其Python脚本实现与解析</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-09-02T02:19:54.000Z" title="发表于 2024-09-02 10:19:54">2024-09-02</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-09-02T02:40:28.631Z" title="更新于 2024-09-02 10:40:28">2024-09-02</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Js%E9%80%86%E5%90%91/">Js逆向</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">2.9k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>10分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="Js逆向入门:AES加解密及其Python脚本实现与解析"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><p>最近在学习Js逆向时发现AES涉及的知识点比较多，编写对应的Py脚本时涉及的细节也比较多，就导致了会出现各种各样的小bug，所以心血来潮写一篇文章进行一个系统的总结（学艺不精，如有错误，欢迎各位师傅指正）</p>
+<h1 id="一、AES简介"><a href="#一、AES简介" class="headerlink" title="一、AES简介"></a><strong>一、AES简介</strong></h1><p><img src="/2024/09/02/Js%E9%80%86%E5%90%91%E5%85%A5%E9%97%A8-AES%E5%8A%A0%E8%A7%A3%E5%AF%86%E5%8F%8A%E5%85%B6Python%E8%84%9A%E6%9C%AC%E5%AE%9E%E7%8E%B0%E4%B8%8E%E8%A7%A3%E6%9E%90/1725243421731-3b090990-0354-4955-a2a0-e8bebeefda78.png" alt="img"></p>
+<p>AES是最为常见的对称加密算法（对称加密就是加密与解密使用的秘钥是一个），大致的加密流程如下</p>
+<p><img src="/2024/09/02/Js%E9%80%86%E5%90%91%E5%85%A5%E9%97%A8-AES%E5%8A%A0%E8%A7%A3%E5%AF%86%E5%8F%8A%E5%85%B6Python%E8%84%9A%E6%9C%AC%E5%AE%9E%E7%8E%B0%E4%B8%8E%E8%A7%A3%E6%9E%90/1725243422128-59453157-de11-421a-8c0f-bcc38dd93f0f.png" alt="img"></p>
+<ul>
+<li><p><strong>明文P</strong>：等待加密的数据</p>
+</li>
+<li><p><strong>秘钥K：</strong>用来加密明文的密码，在对称加密算法中，加密与解密的密钥是相同的。密钥为接收方与发送方协商产生，但不可以直接在网络上传输，否则会导致密钥泄漏，例如我们在进行Js逆向时，得到了该秘钥就可以尝试解密网站中的加密数据</p>
+</li>
+<li><p><strong>AES加密函数：</strong>设 AES 加密函数为 E，则 C &#x3D; E(K, P),其中 P 为明文，K 为密钥，C 为密文。也就是说，把明文 P 和密钥 K 作为加密函数的参数输入，则加密函数 E 会输出密文 C</p>
+</li>
+<li><p><strong>密文 C：</strong>经过 AES 加密后的数据</p>
+</li>
+<li><p><strong>AES 解密函数：</strong>设 AES 解密函数为 D，则 P &#x3D; D(K, C),其中 C 为密文，K 为密钥，P 为明文。也就是说，把密文 C 和密钥 K 作为解密函数的参数输入，则解密函数会输出明文 P</p>
+</li>
+</ul>
+<p>实现 AES 有几种模式，主要有 ECB、CBC、CFB 和 OFB 这几种。本章主要介绍最常用的 <strong>ECB</strong> 和 <strong>CBC</strong> 模式。</p>
+<p>由于我们主要是研究Js逆向中的AES加密,只需要知晓其基本概念和用法即可，详细的加密逻辑暂时不用深究</p>
+<h1 id="二、加密模式-ECB"><a href="#二、加密模式-ECB" class="headerlink" title="二、加密模式_ECB"></a><strong>二、加密模式_ECB</strong></h1><p><img src="/2024/09/02/Js%E9%80%86%E5%90%91%E5%85%A5%E9%97%A8-AES%E5%8A%A0%E8%A7%A3%E5%AF%86%E5%8F%8A%E5%85%B6Python%E8%84%9A%E6%9C%AC%E5%AE%9E%E7%8E%B0%E4%B8%8E%E8%A7%A3%E6%9E%90/1725243421741-151f0965-a270-491b-a54f-8b3c23fa13ac.png" alt="img"></p>
+<p>ECB是AES几种加密模式中最简单的加密模式，简单来说就是将明文切分为若干个组分别加密，实际上有很明显的弱点，就是相同的明文会得到同样的密文。因为<strong>每个分组加密方式和密钥都相同，若分组明文相同，加密后密文也相同</strong>。</p>
+<p>这里给出我自己写的利用Python3实现AES_ECB模式的加解密完整demo,每一步都会在注释中进行详细的解释，首先是<strong>AES_ECB加密</strong>代码，如下</p>
+<pre><code class="python">def encrypt(key, text):
+    # 确保密钥长度是16
+    key = key[:16]  # 截断16位
+
+    # 因为AES加密算法处理的是字节数据，所以需要将密钥转化为bytes类型
+    text_bytes = text.encode(&#39;utf-8&#39;)
+    # 由于AES加密要求输入数据的长度必须是块大小的整数倍（AES的块大小是16字节）
+    # 使用pad函数来填充数据，以确保其长度是16的倍数
+    padded_text = pad(text_bytes, AES.block_size)
+
+    # 初始化AES加密器（使用ECB模式）
+    aes = AES.new(key, AES.MODE_ECB)
+
+    # 加密
+    encrypt_aes = aes.encrypt(padded_text)
+    # 注意：加密后的数据是字节串，可能包含无法直接以文本形式存储或传输的字符
+    # 形如b&#39;\x036\x19\xe1\x12\x15\xa7\x9bH\x16!&#39;
+
+    # 加密后的字节串编码为Base64格式的字节串
+    encrypted_text = base64.b64encode(encrypt_aes)
+
+    # 然后.decode(&#39;utf-8&#39;)将字节串转换为字符串
+    # 形如b&#39;AzYZxk2RHr7uq6cN8SVA/hOmMGx+Nfc54RIVp5tIFiE=&#39;
+    encrypted_text = encrypted_text.decode(&#39;utf-8&#39;)
+    # 形如AzYZxk2RHr7uq6cN8SVA/hOmMGx+Nfc54RIVp5tIFiE=
+
+    return encrypted_text
+</code></pre>
+<p>AES_ECB模式只需要秘钥key即可对明文进行加密，所以这里传入key（必须是16位）和要加密的明文text，并且aes的加解密函数，形如</p>
+<pre><code class="python">encrypt_aes = aes.encrypt(padded_text)
+</code></pre>
+<p>处理的都是字节串，也就是padded_text必须是个字节串，这里是加密函数，解密函数也是一样，所以在调用该数据进行加解密前，可以通过</p>
+<pre><code class="plain"># 将text字符串转为字节串
+text_bytes = text.encode(&#39;utf-8&#39;)
+# 相反的，下面这样就是将字节串转为字符串
+text = text_bytes.decode(&#39;utf-8&#39;)
+</code></pre>
+<p>字节串和字符串看下面两个就已经可以区分了</p>
+<pre><code class="plain"># 字符串
+text = &#39;AzYZxk2RHr7uq6cN8SVA/hOmMGx+Nfc54RIVp5tIFiE=&#39;
+# 字节串
+# aes加解密函数，处理的就是字节串
+text = b&#39;AzYZxk2RHr7uq6cN8SVA/hOmMGx+Nfc54RIVp5tIFiE=&#39;
+</code></pre>
+<p>注意调用加密函数得到的结果是个字节串，不利用阅读传输和存储，所通过是将接加密后得到的字节串进行base64编码后再转为字符串，从而得到最终的密文</p>
+<p>然后是<strong>AES_ECB的解密</strong>代码，由于AES是对称加密，所以解密简单来说就是倒走一遍加密流程，代码如下</p>
+<pre><code class="python">def decrypt(key, text):
+
+    # 初始化加密器
+    aes = AES.new(key[:16], AES.MODE_ECB)
+
+    # 注意：无论什么格式的数据，base64解码后得到的一定是字节串！！！
+    # 如果是加密，则编码后的数据类型和编码前相同
+    # 所以这里对字符串进行base64解码，得到字节串，中间不需要主动进行字符串转字节串的操作
+    # 解密之后形如b&#39;\x036\x19\xe1\x12\x15\xa7\x9bH\x16!&#39;的字节串
+    base64_decrypted = base64.b64decode(text)
+
+    # 调用AES解密函数解密字节串
+    # 解密之后形如b&#39;Hello, AES Encryption!\n\n\n\n\n\n\n\n\n\n&#39;的字节串
+    decrypted_padded = aes.decrypt(base64_decrypted)
+
+    # 去除填充部分，然后将字节串改为字符串
+    decrypted_text = unpad(decrypted_padded, AES.block_size).decode(&#39;utf-8&#39;)
+    # 最后得到完整明文
+
+    return decrypted_text
+</code></pre>
+<p>这个代码也很容易理解，但有两个需要注意的地方，一个是传入的密文text是字符串，但是此处不需要先转化为字节串再base64解码。而是直接进行base64解码，原因是任何类型的数据，在进行base64解码之后，得到的结果都是字节串，可以看下面一个小demo</p>
+<pre><code class="python">import base64
+
+# 假设这是一个Base64编码的字符串
+encoded_str = &quot;SGVsbG8gV29ybGQ=&quot;
+
+# 解码Base64字符串
+decoded_bytes = base64.b64decode(encoded_str)
+
+# 打印解码后的字节串（可以看到字符串解码之后的结果，是字节串）
+print(decoded_bytes)  # 输出: b&#39;Hello World&#39;
+
+# 如果你想要得到一个字符串而不是字节串，你可能需要解码字节串
+# 注意：这取决于原始数据的编码，这里假设是UTF-8
+decoded_str = decoded_bytes.decode(&#39;utf-8&#39;)
+print(decoded_str)  # 输出: Hello World
+</code></pre>
+<p>所以此处在调用aes解码函数前，不需要手动进行字符串转字节串，然后再去对字节串进行base64解码（因为base64解码的结果会强制转换五位字节串），简单来说就是下面这样</p>
+<pre><code class="python"># Py中base64解码时
+decoded_bytes = base64.b64decode(encoded_str)
+# 入参encoded_str可以是字符串或者字节串，但解码的结果decoded_bytes一定是一个字节串
+
+# Py中base64编码时
+encoded_str = base64.b64encode(str)
+# 入参str一定是一个字节串，并且编码结果encoded_str也一定是一个字节串
+</code></pre>
+<p>第二个需要注意的地方就是去除填充部分，这个部分需要跟加密函数中的填充代码进行比对，从而理解填充这个操作</p>
+<p>最后给出一个<strong>完整的AES_ECB模式的加解密以及示例demo</strong></p>
+<pre><code class="python">import base64
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad, unpad
+
+# 加密函数
+
+
+def encrypt(key, text):
+    # 确保密钥长度是16
+    key = key[:16]  # 截断16位
+
+    # 因为AES加密算法处理的是字节数据，所以需要将密钥转化为bytes类型
+    text_bytes = text.encode(&#39;utf-8&#39;)
+    # 由于AES加密要求输入数据的长度必须是块大小的整数倍（AES的块大小是16字节）
+    # 使用pad函数来填充数据，以确保其长度是16的倍数
+    padded_text = pad(text_bytes, AES.block_size)
+
+    # 初始化AES加密器（使用ECB模式）
+    aes = AES.new(key, AES.MODE_ECB)
+
+    # 加密
+    encrypt_aes = aes.encrypt(padded_text)
+    # 注意：加密后的数据是字节串，可能包含无法直接以文本形式存储或传输的字符
+    # 形如b&#39;\x036\x19\xe1\x12\x15\xa7\x9bH\x16!&#39;
+
+    # 加密后的字节串编码为Base64格式的字节串
+    encrypted_text = base64.b64encode(encrypt_aes)
+
+    # 然后.decode(&#39;utf-8&#39;)将字节串转换为字符串
+    # 形如b&#39;AzYZxk2RHr7uq6cN8SVA/hOmMGx+Nfc54RIVp5tIFiE=&#39;
+    encrypted_text = encrypted_text.decode(&#39;utf-8&#39;)
+    # 形如AzYZxk2RHr7uq6cN8SVA/hOmMGx+Nfc54RIVp5tIFiE=
+
+    return encrypted_text
+
+
+def decrypt(key, text):
+
+    # 初始化加密器
+    aes = AES.new(key[:16], AES.MODE_ECB)
+
+    # 注意：无论什么格式的数据，base64解码后得到的一定是字节串！！！
+    # 如果是加密，则编码后的数据类型和编码前相同
+    # 所以这里对字符串进行base64解码，得到字节串，中间不需要主动进行字符串转字节串的操作
+    # 解密之后形如b&#39;\x036\x19\xe1\x12\x15\xa7\x9bH\x16!&#39;的字节串
+    base64_decrypted = base64.b64decode(text)
+
+    # 调用AES解密函数解密字节串
+    # 解密之后形如b&#39;Hello, AES Encryption!\n\n\n\n\n\n\n\n\n\n&#39;的字节串
+    decrypted_padded = aes.decrypt(base64_decrypted)
+
+    # 去除填充部分，然后将字节串改为字符串
+    decrypted_text = unpad(decrypted_padded, AES.block_size).decode(&#39;utf-8&#39;)
+    # 最后得到完整明文
+
+    return decrypted_text
+
+
+# 示例使用
+key = b&#39;thisisakey123456&#39;
+text = &#39;Hello, AES Encryption!&#39;
+encrypted = encrypt(key, text)
+print(&quot;Encrypted:&quot;, encrypted)
+decrypted = decrypt(key, encrypted)
+print(&quot;Decrypted:&quot;, decrypted)
+</code></pre>
+<p>运行之后结果如下</p>
+<p><img src="/2024/09/02/Js%E9%80%86%E5%90%91%E5%85%A5%E9%97%A8-AES%E5%8A%A0%E8%A7%A3%E5%AF%86%E5%8F%8A%E5%85%B6Python%E8%84%9A%E6%9C%AC%E5%AE%9E%E7%8E%B0%E4%B8%8E%E8%A7%A3%E6%9E%90/1725243422067-6cbd92ae-59c8-4026-be88-a5c1abac1e27.png" alt="img"></p>
+<p>成功实现了对明文的加密和解密，感兴趣的师傅可以复制代码自己下去试试，结合代码的注释，很快就能理解了</p>
+<h1 id="三、加密模式-CBC"><a href="#三、加密模式-CBC" class="headerlink" title="三、加密模式_CBC"></a><strong>三、加密模式_CBC</strong></h1><p><img src="/2024/09/02/Js%E9%80%86%E5%90%91%E5%85%A5%E9%97%A8-AES%E5%8A%A0%E8%A7%A3%E5%AF%86%E5%8F%8A%E5%85%B6Python%E8%84%9A%E6%9C%AC%E5%AE%9E%E7%8E%B0%E4%B8%8E%E8%A7%A3%E6%9E%90/1725243421754-feedcaba-6e47-42ac-8c75-a199e4ca46d3.png" alt="img"></p>
+<p>AES_CBC加密模式算是AES几个模式中使用的最多的，因为它的安全性比ECB模式高了很多，在这种方法中，每个密文块都依赖于它前面的所有密文块。同时，为了保证每条消息的唯一性，在第一个块中需要使用初始化向量iv</p>
+<p>AES_CBC模式的加解密，在代码中相比于AES_ECB模式多了一个iv（初始化向量）需要处理,所以这里直接给出AES_CBC的完整加解密Demo,如下</p>
+<pre><code class="python">import base64
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad, unpad
+from Crypto.Random import get_random_bytes
+
+# 加密函数
+
+
+def encrypt(key, iv, text):
+    key = key[:16]
+
+    # 转换明文字符串为为字节串
+    text_bytes = text.encode(&#39;utf-8&#39;)
+    # 填充
+    padded_text = pad(text_bytes, AES.block_size)
+
+    # 初始化AES加密器（使用CBC模式,需要传入iv）
+    aes = AES.new(key, AES.MODE_CBC, iv)
+
+    # 加密
+    encrypt_aes = aes.encrypt(padded_text)
+
+    # 加密后的字节串编码为Base64格式的字节串
+    encrypted_text = base64.b64encode(encrypt_aes)
+
+    # 转换为字符串
+    encrypted_text = encrypted_text.decode(&#39;utf-8&#39;)
+
+    return encrypted_text
+
+# 解密函数
+
+
+def decrypt(key, iv, text):
+    # 解码Base64
+    base64_decrypted = base64.b64decode(text)
+
+    # 初始化AES解密器（使用CBC模式）
+    aes = AES.new(key[:16], AES.MODE_CBC, iv)
+
+    # 解密
+    decrypted_padded = aes.decrypt(base64_decrypted)
+
+    # 去除填充部分
+    decrypted_text = unpad(decrypted_padded, AES.block_size).decode(&#39;utf-8&#39;)
+
+    return decrypted_text
+
+
+# 秘钥
+key = b&#39;thisisakey123456&#39;
+
+# 初始化向量长度必须与块大小相同（AES为16字节）
+# 初始化向量
+iv = b&#39;1234567812345678&#39;
+text = &#39;Hello, AES Encryption with CBC Mode!&#39;
+
+# 加密
+encrypted = encrypt(key, iv, text)
+print(&quot;Encrypted:&quot;, encrypted)
+
+# 解密时需要使用相同的IV
+decrypted = decrypt(key, iv, encrypted)
+print(&quot;Decrypted:&quot;, decrypted)
+</code></pre>
+<p>大致流程与AES_ECB相同，只不过在初始化加密器和解密器时，带上了一个初始化向量iv，这个iv也必须与AES块大小相同，即16字节，运行效果如下（如果key和iv固定，那相同明文得到的密文也固定）</p>
+<p><img src="/2024/09/02/Js%E9%80%86%E5%90%91%E5%85%A5%E9%97%A8-AES%E5%8A%A0%E8%A7%A3%E5%AF%86%E5%8F%8A%E5%85%B6Python%E8%84%9A%E6%9C%AC%E5%AE%9E%E7%8E%B0%E4%B8%8E%E8%A7%A3%E6%9E%90/1725243422124-d603bfad-48c9-444f-a75b-d3b7344d8d2e.png" alt="img"></p>
+<p>在实际逆向中，通常寻找目标的key与iv来对站点的加密数据进行解密，如下</p>
+<p><img src="/2024/09/02/Js%E9%80%86%E5%90%91%E5%85%A5%E9%97%A8-AES%E5%8A%A0%E8%A7%A3%E5%AF%86%E5%8F%8A%E5%85%B6Python%E8%84%9A%E6%9C%AC%E5%AE%9E%E7%8E%B0%E4%B8%8E%E8%A7%A3%E6%9E%90/1725243422027-edfdc192-505d-49cf-bf6d-b70d5e2cd69a.png" alt="img"></p>
+<h1 id="四、总结"><a href="#四、总结" class="headerlink" title="四、总结"></a><strong>四、总结</strong></h1><p><img src="/2024/09/02/Js%E9%80%86%E5%90%91%E5%85%A5%E9%97%A8-AES%E5%8A%A0%E8%A7%A3%E5%AF%86%E5%8F%8A%E5%85%B6Python%E8%84%9A%E6%9C%AC%E5%AE%9E%E7%8E%B0%E4%B8%8E%E8%A7%A3%E6%9E%90/1725243422190-4c737269-2f35-4e02-a189-beea580c9543.png" alt="img"></p>
+<p>除了这两种常见的模式之外，AES还有CFB，OFB等模式，但这两种是Js逆向中最常见的，所以这两种是必须要理解的，其他模式等遇到的时候再去了解就行，今天的文章就到这里啦，有任何的意见和建议也欢迎各位师傅交流！！</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="http://example.com">庆尘</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="http://example.com/2024/09/02/Js%E9%80%86%E5%90%91%E5%85%A5%E9%97%A8-AES%E5%8A%A0%E8%A7%A3%E5%AF%86%E5%8F%8A%E5%85%B6Python%E8%84%9A%E6%9C%AC%E5%AE%9E%E7%8E%B0%E4%B8%8E%E8%A7%A3%E6%9E%90/">http://example.com/2024/09/02/Js%E9%80%86%E5%90%91%E5%85%A5%E9%97%A8-AES%E5%8A%A0%E8%A7%A3%E5%AF%86%E5%8F%8A%E5%85%B6Python%E8%84%9A%E6%9C%AC%E5%AE%9E%E7%8E%B0%E4%B8%8E%E8%A7%A3%E6%9E%90/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://example.com" target="_blank">Daydust's Blog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/SRC%E6%8C%96%E6%8E%98/">SRC挖掘</a><a class="post-meta__tags" href="/tags/Js%E9%80%86%E5%90%91/">Js逆向</a></div><div class="post_share"><div class="social-share" data-image="/img/avater.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2024/08/12/Js%E5%9C%A8%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98%E4%B8%AD%E7%9A%84%E4%BD%9C%E7%94%A8-%E6%8E%A5%E5%8F%A3%E7%AF%87/" title="Js在漏洞挖掘中的作用-接口篇"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">Js在漏洞挖掘中的作用-接口篇</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2024/05/13/Hae%E8%A7%84%E5%88%99%E5%88%86%E4%BA%AB-%E8%87%B4%E5%8A%9B%E4%BA%8E%E5%8F%91%E7%8E%B0%E6%AF%8F%E4%B8%80%E4%B8%AA%E8%B6%8A%E6%9D%83%E6%BC%8F%E6%B4%9E/" title="Hae规则分享-致力于发现每一个越权漏洞"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-05-13</div><div class="title">Hae规则分享-致力于发现每一个越权漏洞</div></div></a></div><div><a href="/2024/08/12/Js%E5%9C%A8%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98%E4%B8%AD%E7%9A%84%E4%BD%9C%E7%94%A8-%E6%8E%A5%E5%8F%A3%E7%AF%87/" title="Js在漏洞挖掘中的作用-接口篇"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-08-12</div><div class="title">Js在漏洞挖掘中的作用-接口篇</div></div></a></div><div><a href="/2024/02/24/%E8%99%9A%E6%8B%9F%E5%8F%B7%E7%A0%81%E5%9C%BA%E6%99%AF%E4%B8%8B%E7%9A%84%E9%80%BB%E8%BE%91%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98/" title="虚拟号码场景下的逻辑漏洞挖掘"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-02-24</div><div class="title">虚拟号码场景下的逻辑漏洞挖掘</div></div></a></div><div><a href="/2023/11/04/%E9%AA%8C%E8%AF%81%E7%A0%81%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98%E6%96%B9%E5%BC%8F(%E4%B8%8A)-%E7%9F%AD%E4%BF%A1%E9%AA%8C%E8%AF%81%E7%A0%81/" title="验证码漏洞挖掘方式(上)-短信验证码"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-11-04</div><div class="title">验证码漏洞挖掘方式(上)-短信验证码</div></div></a></div><div><a href="/2023/11/04/%E9%AA%8C%E8%AF%81%E7%A0%81%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98%E6%96%B9%E5%BC%8F(%E4%B8%8B)-%E5%9B%BE%E5%83%8F%E9%AA%8C%E8%AF%81%E7%A0%81/" title="验证码漏洞挖掘方式-下-图像验证码"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-11-04</div><div class="title">验证码漏洞挖掘方式-下-图像验证码</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/avater.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">庆尘</div><div class="author-info__description">有些人说看不到未来,其实是看到了未来</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">16</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">13</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/daydust"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/daydust" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="https://blog.csdn.net/qq_63844103?type=blog" target="_blank" title="CSDN"><i class="fa fa-book-open"></i></a><a class="social-icon" href="mailto:1597128781@qq.com" target="_blank" title="Email"><i class="fas fa-envelope-open-text"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">不要让时代的悲哀，成为你的悲哀</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content is-expand"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%E3%80%81AES%E7%AE%80%E4%BB%8B"><span class="toc-text">一、AES简介</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E5%8A%A0%E5%AF%86%E6%A8%A1%E5%BC%8F-ECB"><span class="toc-text">二、加密模式_ECB</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E5%8A%A0%E5%AF%86%E6%A8%A1%E5%BC%8F-CBC"><span class="toc-text">三、加密模式_CBC</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E6%80%BB%E7%BB%93"><span class="toc-text">四、总结</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/09/02/Js%E9%80%86%E5%90%91%E5%85%A5%E9%97%A8-AES%E5%8A%A0%E8%A7%A3%E5%AF%86%E5%8F%8A%E5%85%B6Python%E8%84%9A%E6%9C%AC%E5%AE%9E%E7%8E%B0%E4%B8%8E%E8%A7%A3%E6%9E%90/" title="Js逆向入门:AES加解密及其Python脚本实现与解析">Js逆向入门:AES加解密及其Python脚本实现与解析</a><time datetime="2024-09-02T02:19:54.000Z" title="发表于 2024-09-02 10:19:54">2024-09-02</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/08/12/Js%E5%9C%A8%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98%E4%B8%AD%E7%9A%84%E4%BD%9C%E7%94%A8-%E6%8E%A5%E5%8F%A3%E7%AF%87/" title="Js在漏洞挖掘中的作用-接口篇">Js在漏洞挖掘中的作用-接口篇</a><time datetime="2024-08-12T08:03:57.000Z" title="发表于 2024-08-12 16:03:57">2024-08-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/05/13/Hae%E8%A7%84%E5%88%99%E5%88%86%E4%BA%AB-%E8%87%B4%E5%8A%9B%E4%BA%8E%E5%8F%91%E7%8E%B0%E6%AF%8F%E4%B8%80%E4%B8%AA%E8%B6%8A%E6%9D%83%E6%BC%8F%E6%B4%9E/" title="Hae规则分享-致力于发现每一个越权漏洞">Hae规则分享-致力于发现每一个越权漏洞</a><time datetime="2024-05-13T12:03:12.000Z" title="发表于 2024-05-13 20:03:12">2024-05-13</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/04/26/%E7%9B%98%E7%82%B9PHP%E4%B8%AD%E7%9A%84%E5%8F%98%E9%87%8F%E8%A6%86%E7%9B%96%E6%BC%8F%E6%B4%9E/" title="盘点PHP中的变量覆盖漏洞">盘点PHP中的变量覆盖漏洞</a><time datetime="2024-04-26T15:43:14.000Z" title="发表于 2024-04-26 23:43:14">2024-04-26</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/02/24/%E8%99%9A%E6%8B%9F%E5%8F%B7%E7%A0%81%E5%9C%BA%E6%99%AF%E4%B8%8B%E7%9A%84%E9%80%BB%E8%BE%91%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98/" title="虚拟号码场景下的逻辑漏洞挖掘">虚拟号码场景下的逻辑漏洞挖掘</a><time datetime="2024-02-24T02:30:53.953Z" title="发表于 2024-02-24 10:30:53">2024-02-24</time></div></div></div></div><div class="card-widget ads-wrap"><div class="wechat_channel"><img src ="/img/m_public.png"></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2024 By 庆尘</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>
